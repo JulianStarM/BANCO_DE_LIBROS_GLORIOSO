@@ -145,7 +145,10 @@
                 </button>
             </div>
             <div class="flex-1 overflow-y-auto px-6 py-4">
-                <form id="formNuevaEntrega" class="space-y-6">
+                <form id="formNuevaEntrega" class="space-y-6" 
+                      data-action="{{ route('entregas.api.store') }}"
+                      data-buscar-url="{{ route('entregas.api.buscar-estudiantes') }}"
+                      data-libros-url="{{ route('entregas.api.libros-por-grado') }}">
                     {{-- Paso 1: Buscar Estudiante --}}
                     <div>
                         <h4 class="text-sm font-semibold text-slate-800 uppercase tracking-wider border-b border-slate-100 pb-2 mb-3">1. Seleccionar Estudiante</h4>
@@ -233,127 +236,3 @@
     </div>
 </div>
 @endsection
-
-@push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // ============ ENTREGA MODAL LOGIC ============
-    const mBuscar = document.getElementById('modal_buscar_est');
-    const mResultados = document.getElementById('modal_resultados_est');
-    const mIdEst = document.getElementById('modal_id_estudiante');
-    const mEstInfo = document.getElementById('modal_est_info');
-    const mBuscarWrapper = document.getElementById('entrega-buscar-wrapper');
-    const mSecLibros = document.getElementById('modal_sec_libros');
-    const mSecRecepcion = document.getElementById('modal_sec_recepcion');
-    const mListaLibros = document.getElementById('modal_lista_libros');
-    const mLoadingLibros = document.getElementById('modal_loading_libros');
-    const mLblTotal = document.getElementById('modal_lbl_total_libros');
-    const mBtnGuardar = document.getElementById('modal_btn_guardar_entrega');
-    const mAlerta = document.getElementById('modal_alerta_entrega');
-    let timeoutBusq = null;
-
-    if (mBuscar) {
-        mBuscar.addEventListener('input', function() {
-            const q = this.value.trim();
-            clearTimeout(timeoutBusq);
-            if (q.length < 2) { mResultados.classList.add('hidden'); return; }
-            timeoutBusq = setTimeout(() => {
-                fetch(`{{ route('entregas.api.buscar-estudiantes') }}?q=${encodeURIComponent(q)}`)
-                    .then(r => r.json())
-                    .then(data => {
-                        mResultados.innerHTML = '';
-                        if (data.length === 0) {
-                            mResultados.innerHTML = '<div class="p-3 text-sm text-slate-500">No se encontraron estudiantes.</div>';
-                        } else {
-                            data.forEach(est => {
-                                const div = document.createElement('div');
-                                div.className = 'p-3 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0 text-sm';
-                                div.innerHTML = `<div class="font-medium text-slate-800">${est.apellidos}, ${est.nombres}</div><div class="text-xs text-slate-500">DNI: ${est.dni} | ${est.grado}° ${est.nivel || ''}</div>`;
-                                div.addEventListener('click', () => seleccionarEstModal(est));
-                                mResultados.appendChild(div);
-                            });
-                        }
-                        mResultados.classList.remove('hidden');
-                    }).catch(() => { mResultados.innerHTML = '<div class="p-3 text-sm text-red-500">Error al buscar.</div>'; mResultados.classList.remove('hidden'); });
-            }, 300);
-        });
-    }
-
-    document.addEventListener('click', (e) => {
-        if (mBuscar && !mBuscar.contains(e.target) && !mResultados.contains(e.target)) mResultados.classList.add('hidden');
-    });
-
-    function seleccionarEstModal(est) {
-        mResultados.classList.add('hidden');
-        mBuscarWrapper.classList.add('hidden');
-        mIdEst.value = est.id;
-        document.getElementById('modal_lbl_nombre').textContent = `${est.apellidos}, ${est.nombres}`;
-        document.getElementById('modal_lbl_dni').textContent = est.dni;
-        document.getElementById('modal_lbl_grado').textContent = est.grado + '°';
-        document.getElementById('modal_lbl_nivel').textContent = (est.nivel || '').charAt(0).toUpperCase() + (est.nivel || '').slice(1);
-        if (est.tiene_entrega) {
-            mAlerta.classList.remove('hidden');
-            mBtnGuardar.disabled = true; mBtnGuardar.classList.add('opacity-50','cursor-not-allowed');
-            mSecLibros.classList.add('hidden'); mSecRecepcion.classList.add('hidden');
-        } else {
-            mAlerta.classList.add('hidden');
-            cargarLibrosModal(est.grado, est.nivel);
-            mSecRecepcion.classList.remove('hidden');
-        }
-        mEstInfo.classList.remove('hidden');
-        lucide.createIcons();
-    }
-
-    document.getElementById('modal_btn_cambiar_est')?.addEventListener('click', () => {
-        mEstInfo.classList.add('hidden'); mSecLibros.classList.add('hidden'); mSecRecepcion.classList.add('hidden');
-        mBuscarWrapper.classList.remove('hidden'); mBuscar.value = ''; mIdEst.value = '';
-        mBtnGuardar.disabled = true; mBtnGuardar.classList.add('opacity-50','cursor-not-allowed');
-        mBuscar.focus();
-    });
-
-    function cargarLibrosModal(grado, nivel) {
-        mSecLibros.classList.remove('hidden'); mListaLibros.innerHTML = ''; mLoadingLibros.classList.remove('hidden');
-        fetch(`{{ route('entregas.api.libros-por-grado') }}?grado=${grado}&nivel=${nivel}`)
-            .then(r => r.json())
-            .then(data => {
-                mLoadingLibros.classList.add('hidden');
-                if (data.length === 0) {
-                    mListaLibros.innerHTML = '<div class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-600">No hay libros disponibles para este grado.</div>';
-                    mBtnGuardar.disabled = true; mBtnGuardar.classList.add('opacity-50','cursor-not-allowed');
-                    return;
-                }
-                let html = '';
-                data.forEach(l => {
-                    html += `<label class="flex items-center justify-between p-2.5 border border-slate-200 rounded-xl hover:bg-slate-50 cursor-pointer has-[:checked]:bg-blue-50 has-[:checked]:border-blue-200 text-sm">
-                        <div class="flex items-center gap-2"><input type="checkbox" name="libros[]" value="${l.id}" checked class="h-4 w-4 rounded border-slate-300 text-blue-600 modal-cb-libro"><div><p class="font-semibold text-slate-800">${l.nombre}</p><p class="text-xs text-slate-500">${l.area}</p></div></div>
-                        <span class="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-md text-xs">Disp: ${l.cantidad_disponible}</span></label>`;
-                });
-                mListaLibros.innerHTML = html;
-                actualizarTotalModal();
-                document.querySelectorAll('.modal-cb-libro').forEach(cb => cb.addEventListener('change', actualizarTotalModal));
-            });
-    }
-
-    function actualizarTotalModal() {
-        const count = document.querySelectorAll('.modal-cb-libro:checked').length;
-        mLblTotal.textContent = `${count} libros seleccionados`;
-        if (count === 0) { mBtnGuardar.disabled = true; mBtnGuardar.classList.add('opacity-50','cursor-not-allowed'); }
-        else { mBtnGuardar.disabled = false; mBtnGuardar.classList.remove('opacity-50','cursor-not-allowed'); }
-    }
-
-    // Toggle apoderado form
-    document.querySelectorAll('#formNuevaEntrega input[name="tipo_firmante"]').forEach(radio => {
-        radio.addEventListener('change', (e) => {
-            document.getElementById('modal_form_apoderado').classList.toggle('hidden', e.target.value !== 'apoderado');
-        });
-    });
-
-    // Submit entrega
-    mBtnGuardar?.addEventListener('click', () => {
-        submitModalForm('formNuevaEntrega', '{{ route("entregas.api.store") }}', 'modalNuevaEntrega', () => {
-            setTimeout(() => location.reload(), 800);
-        });
-    });
-});
-</script>
-@endpush

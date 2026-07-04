@@ -181,12 +181,12 @@
                 </button>
             </div>
             <div class="flex-1 overflow-y-auto px-6 py-4">
-                <form id="formNuevoLibro" class="space-y-6">
+                <form id="formNuevoLibro" class="space-y-6" data-action="{{ route('libros.api.store') }}">
                     @include('libros.form')
                 </form>
             </div>
             <div class="px-6 py-4 border-t border-slate-100 shrink-0 flex justify-end gap-3">
-                <button type="button" onclick="closeModal('modalNuevoLibro')" class="px-5 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors">
+                <button type="button" onclick="window.closeModal('modalNuevoLibro')" class="px-5 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors">
                     Cancelar
                 </button>
                 <button type="button" id="btnGuardarLibro" class="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-xl hover:bg-blue-700 shadow-sm transition-colors flex items-center gap-2 btn-submit-modal">
@@ -197,13 +197,3 @@
     </div>
 </div>
 @endsection
-
-@push('scripts')
-<script>
-document.getElementById('btnGuardarLibro')?.addEventListener('click', () => {
-    submitModalForm('formNuevoLibro', '{{ route("libros.api.store") }}', 'modalNuevoLibro', () => {
-        setTimeout(() => location.reload(), 800);
-    });
-});
-</script>
-@endpush

@@ -167,7 +167,7 @@
                 </button>
             </div>
             <div class="flex-1 overflow-y-auto px-6 py-4">
-                <form id="formNuevoEstudiante" class="space-y-4">
+                <form id="formNuevoEstudiante" class="space-y-4" data-action="{{ route('estudiantes.api.store') }}">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div><label class="block text-xs font-medium text-slate-600 mb-1">Código *</label><input type="text" name="codigo_estudiante" class="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500" required></div>
                         <div><label class="block text-xs font-medium text-slate-600 mb-1">DNI *</label><input type="text" name="dni" class="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500" required maxlength="15"></div>
@@ -199,7 +199,7 @@
                 </form>
             </div>
             <div class="px-6 py-4 border-t border-slate-100 shrink-0 flex justify-end gap-3">
-                <button type="button" onclick="closeModal('modalNuevoEstudiante')" class="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50">Cancelar</button>
+                <button type="button" onclick="window.closeModal('modalNuevoEstudiante')" class="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50">Cancelar</button>
                 <button type="button" id="btnGuardarEstudiante" class="px-5 py-2 text-sm font-medium text-white bg-blue-600 rounded-xl hover:bg-blue-700 flex items-center gap-2 btn-submit-modal">
                     <i data-lucide="save" class="h-4 w-4"></i> Guardar Estudiante
                 </button>
@@ -208,13 +208,3 @@
     </div>
 </div>
 @endsection
-
-@push('scripts')
-<script>
-document.getElementById('btnGuardarEstudiante')?.addEventListener('click', () => {
-    submitModalForm('formNuevoEstudiante', '{{ route("estudiantes.api.store") }}', 'modalNuevoEstudiante', () => {
-        setTimeout(() => location.reload(), 800);
-    });
-});
-</script>
-@endpush

@@ -86,7 +86,9 @@
                 </button>
             </div>
             <div class="flex-1 overflow-y-auto px-6 py-4">
-                <form id="formNuevaDevolucion" class="space-y-6">
+                <form id="formNuevaDevolucion" class="space-y-6"
+                      data-action="{{ route('devoluciones.api.store') }}"
+                      data-pendientes-url="{{ route('devoluciones.api.pendientes') }}">
                     {{-- 1: Buscar Entrega --}}
                     <div>
                         <h4 class="text-sm font-semibold text-slate-800 uppercase tracking-wider border-b border-slate-100 pb-2 mb-3">1. Seleccionar Entrega</h4>
@@ -165,93 +167,4 @@
 </div>
 @endsection
 
-@push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const mBuscar = document.getElementById('modal_dev_buscar');
-    const mResultados = document.getElementById('modal_dev_resultados');
-    const mIdEntrega = document.getElementById('modal_id_entrega');
-    const mInfo = document.getElementById('modal_dev_info');
-    const mBuscarWrapper = document.getElementById('dev-buscar-wrapper');
-    const mSecLibros = document.getElementById('modal_dev_sec_libros');
-    const mSecFirmante = document.getElementById('modal_dev_sec_firmante');
-    const mListaLibros = document.getElementById('modal_dev_lista_libros');
-    const mBtnGuardar = document.getElementById('modal_btn_guardar_dev');
-    let timeoutBusq = null;
-
-    if (mBuscar) {
-        mBuscar.addEventListener('input', function() {
-            const q = this.value.trim();
-            clearTimeout(timeoutBusq);
-            if (q.length < 2) { mResultados.classList.add('hidden'); return; }
-            timeoutBusq = setTimeout(() => {
-                fetch(`{{ route('devoluciones.api.pendientes') }}?q=${encodeURIComponent(q)}`)
-                    .then(r => r.json())
-                    .then(data => {
-                        mResultados.innerHTML = '';
-                        if (data.length === 0) {
-                            mResultados.innerHTML = '<div class="p-3 text-sm text-slate-500">No se encontraron entregas pendientes.</div>';
-                        } else {
-                            data.forEach(ent => {
-                                const div = document.createElement('div');
-                                div.className = 'p-3 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0 text-sm';
-                                div.innerHTML = `<div class="font-medium text-slate-800">${ent.codigo_general}</div><div class="text-xs text-slate-500">${ent.estudiante.apellidos}, ${ent.estudiante.nombres} | DNI: ${ent.estudiante.dni}</div>`;
-                                div.addEventListener('click', () => seleccionarEntregaModal(ent));
-                                mResultados.appendChild(div);
-                            });
-                        }
-                        mResultados.classList.remove('hidden');
-                    });
-            }, 300);
-        });
-    }
-
-    document.addEventListener('click', (e) => {
-        if (mBuscar && !mBuscar.contains(e.target) && !mResultados.contains(e.target)) mResultados.classList.add('hidden');
-    });
-
-    function seleccionarEntregaModal(ent) {
-        mResultados.classList.add('hidden'); mBuscarWrapper.classList.add('hidden');
-        mIdEntrega.value = ent.id;
-        document.getElementById('modal_dev_lbl_cod').textContent = ent.codigo_general;
-        document.getElementById('modal_dev_lbl_est').textContent = `${ent.estudiante.apellidos}, ${ent.estudiante.nombres}`;
-        document.getElementById('modal_dev_lbl_fecha').textContent = ent.fecha_entrega;
-        
-        // Render books
-        mListaLibros.innerHTML = '';
-        ent.detalles.forEach((d, i) => {
-            mListaLibros.innerHTML += `
-                <tr>
-                    <td class="px-4 py-3"><input type="hidden" name="detalles[${i}][id_detalle_entrega]" value="${d.id}"><input type="hidden" name="detalles[${i}][id_libro]" value="${d.id_libro}">${i+1}</td>
-                    <td class="px-4 py-3 font-medium text-slate-800">${d.libro.nombre}</td>
-                    <td class="px-4 py-3 text-center">
-                        <select name="detalles[${i}][entregas]" class="block w-full max-w-[150px] mx-auto rounded-lg border border-slate-300 px-2 py-1 text-sm focus:border-blue-500">
-                            <option value="bueno" selected>Bueno</option>
-                            <option value="regular">Regular</option>
-                            <option value="malo">Malo</option>
-                            <option value="perdido">Perdido</option>
-                        </select>
-                    </td>
-                </tr>
-            `;
-        });
-
-        mInfo.classList.remove('hidden'); mSecLibros.classList.remove('hidden'); mSecFirmante.classList.remove('hidden');
-        mBtnGuardar.disabled = false; mBtnGuardar.classList.remove('opacity-50','cursor-not-allowed');
-    }
-
-    document.getElementById('modal_dev_btn_cambiar')?.addEventListener('click', () => {
-        mInfo.classList.add('hidden'); mSecLibros.classList.add('hidden'); mSecFirmante.classList.add('hidden');
-        mBuscarWrapper.classList.remove('hidden'); mBuscar.value = ''; mIdEntrega.value = '';
-        mBtnGuardar.disabled = true; mBtnGuardar.classList.add('opacity-50','cursor-not-allowed');
-        mBuscar.focus();
-    });
-
-    mBtnGuardar?.addEventListener('click', () => {
-        submitModalForm('formNuevaDevolucion', '{{ route("devoluciones.api.store") }}', 'modalNuevaDevolucion', () => {
-            setTimeout(() => location.reload(), 800);
-        });
-    });
-});
-</script>
-@endpush
+@endsection

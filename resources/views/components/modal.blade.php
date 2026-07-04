@@ -14,29 +14,30 @@
 @endphp
 
 <div id="{{ $id }}" class="fixed inset-0 z-[999] hidden" role="dialog" aria-modal="true">
-    {{-- Overlay --}}
-    <div class="modal-overlay fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300 opacity-0" onclick="closeModal('{{ $id }}')"></div>
+    {{-- Overlay con blur y transición suave --}}
+    <div class="modal-overlay fixed inset-0 bg-slate-900/40 backdrop-blur-md transition-all duration-300 opacity-0" onclick="closeModal('{{ $id }}')"></div>
     
-    {{-- Panel --}}
-    <div class="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
-        <div class="modal-panel pointer-events-auto w-full {{ $maxW }} bg-white rounded-2xl shadow-2xl transform transition-all duration-300 scale-95 opacity-0 max-h-[90vh] flex flex-col">
-            {{-- Header --}}
-            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 shrink-0">
-                <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2" id="{{ $id }}-title">
+    {{-- Panel Contenedor --}}
+    <div class="fixed inset-0 flex items-center justify-center p-4 pointer-events-none sm:p-6">
+        <div class="modal-panel pointer-events-auto w-full {{ $maxW }} bg-white rounded-3xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.3)] ring-1 ring-slate-200 transform transition-all duration-500 cubic-bezier(0.4,0,0.2,1) translate-y-4 sm:translate-y-8 scale-95 opacity-0 max-h-[90vh] flex flex-col overflow-hidden">
+            
+            {{-- Header Dinámico --}}
+            <div class="flex items-center justify-between px-6 py-5 border-b border-slate-100 bg-slate-50/50 shrink-0">
+                <h3 class="text-xl font-bold text-slate-800 flex items-center gap-3 tracking-tight" id="{{ $id }}-title">
                     {{ $title }}
                 </h3>
-                <button type="button" onclick="closeModal('{{ $id }}')" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
-                    <i data-lucide="x" class="h-5 w-5"></i>
+                <button type="button" onclick="closeModal('{{ $id }}')" class="group p-2 text-slate-400 hover:text-slate-700 bg-white border border-slate-200 shadow-sm hover:bg-slate-100 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-slate-300">
+                    <i data-lucide="x" class="h-4 w-4 transform group-hover:rotate-90 transition-transform duration-300"></i>
                 </button>
             </div>
             
             {{-- Body --}}
-            <div class="flex-1 overflow-y-auto px-6 py-4" id="{{ $id }}-body">
+            <div class="flex-1 overflow-y-auto px-6 py-6 custom-scrollbar" id="{{ $id }}-body">
                 {{ $slot ?? '' }}
             </div>
             
-            {{-- Footer (optional, for buttons) --}}
-            <div class="px-6 py-4 border-t border-slate-100 shrink-0 hidden" id="{{ $id }}-footer">
+            {{-- Footer (optional) --}}
+            <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 shrink-0 hidden" id="{{ $id }}-footer">
             </div>
         </div>
     </div>
