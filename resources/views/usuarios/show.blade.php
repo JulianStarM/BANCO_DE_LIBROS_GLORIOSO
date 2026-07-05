@@ -5,12 +5,21 @@
 
 @section('content')
 <div class="page-header">
-    <h1><i class="bi bi-person-badge"></i> {{ $usuario->nombre_completo }}</h1>
-    <a href="{{ route('usuarios.index') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Volver</a>
+    <div class="page-header-row">
+        <h1 class="page-title d-flex align-items-center gap-2">
+            <span class="student-avatar">
+                <i data-lucide="person-badge" class="icon"></i>
+            </span>
+            {{ $usuario->nombre_completo }}
+        </h1>
+        <a href="{{ route('usuarios.index') }}" class="btn-app btn-app-secondary">
+            <i data-lucide="arrow-left" class="icon"></i> Volver
+        </a>
+    </div>
 </div>
 
-<div class="card-sbl">
-    <div class="card-body">
+<div class="card-app">
+    <div class="card-body-base">
         <dl class="row mb-0">
             <dt class="col-sm-3">DNI</dt>           <dd class="col-sm-9">{{ $usuario->dni ?? '-' }}</dd>
             <dt class="col-sm-3">Email</dt>         <dd class="col-sm-9">{{ $usuario->email }}</dd>

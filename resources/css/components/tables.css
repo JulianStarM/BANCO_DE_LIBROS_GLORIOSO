@@ -1,0 +1,99 @@
+.table-app {
+    width: 100%;
+    margin-bottom: 0;
+    color: var(--color-slate-700);
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table-app thead th {
+    padding: 0.875rem 1rem;
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-slate-500);
+    background-color: var(--color-slate-50);
+    border-bottom: 1px solid var(--border-color);
+    white-space: nowrap;
+}
+
+.table-app tbody td {
+    padding: 1rem;
+    font-size: var(--font-size-sm);
+    vertical-align: middle;
+    border-bottom: 1px solid var(--border-color);
+    background-color: #ffffff;
+}
+
+.table-app tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.table-app tbody tr:hover td {
+    background-color: var(--color-slate-50);
+}
+
+.table-app .actions-cell {
+    width: 1%;
+    white-space: nowrap;
+    text-align: right;
+}
+
+.table-responsive-app {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+    background-color: #ffffff;
+    box-shadow: var(--shadow-sm);
+}
+
+.table-empty {
+    padding: 2rem;
+    text-align: center;
+    color: var(--color-slate-500);
+    background-color: var(--color-slate-50);
+    border: 1px dashed var(--border-color);
+    border-radius: var(--border-radius-lg);
+}
+
+/* Paginación */
+.pagination-app {
+    display: flex;
+    justify-content: center;
+    gap: 0.25rem;
+    margin-top: 1.25rem;
+}
+
+.pagination-app .page-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.25rem;
+    height: 2.25rem;
+    padding: 0 0.75rem;
+    border-radius: var(--border-radius-sm);
+    border: 1px solid var(--border-color);
+    color: var(--color-slate-700);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    transition: color var(--transition-fast), background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.pagination-app .page-link:hover {
+    background-color: var(--color-slate-50);
+    border-color: var(--color-slate-300);
+    color: var(--color-slate-900);
+}
+
+.pagination-app .active .page-link {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: #ffffff;
+}
+
+.pagination-app .disabled .page-link {
+    color: var(--color-slate-400);
+    background-color: var(--color-slate-50);
+    border-color: var(--border-color);
+}

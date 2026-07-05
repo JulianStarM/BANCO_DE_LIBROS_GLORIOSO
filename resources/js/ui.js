@@ -1,9 +1,5 @@
 // resources/js/ui.js
 
-// Import Lucide (assuming it's installed via npm, or we rely on the CDN)
-// If relying on CDN, it's attached to window. We'll just call it.
-// We will export functions to window to be accessible from inline HTML onclick handlers.
-
 window.initLucide = function () {
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
@@ -20,38 +16,24 @@ window.openModal = function (id) {
     if (!modal) return;
     modal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
-    // Animate in
+
     requestAnimationFrame(() => {
-        const overlay = modal.querySelector('.modal-overlay');
-        const panel = modal.querySelector('.modal-panel');
-        if (overlay) overlay.classList.replace('opacity-0', 'opacity-100');
-        if (panel) {
-            panel.classList.replace('scale-95', 'scale-100');
-            panel.classList.replace('opacity-0', 'opacity-100');
-            panel.classList.replace('translate-y-4', 'translate-y-0');
-            panel.classList.replace('sm:translate-y-8', 'sm:translate-y-0');
-        }
+        modal.classList.add('modal-visible');
     });
-    // Re-render lucide icons inside modal
+
     setTimeout(() => window.initLucide(), 50);
 };
 
 window.closeModal = function (id) {
     const modal = document.getElementById(id);
     if (!modal) return;
-    const overlay = modal.querySelector('.modal-overlay');
-    const panel = modal.querySelector('.modal-panel');
-    if (overlay) overlay.classList.replace('opacity-100', 'opacity-0');
-    if (panel) {
-        panel.classList.replace('scale-100', 'scale-95');
-        panel.classList.replace('opacity-100', 'opacity-0');
-        panel.classList.replace('translate-y-0', 'translate-y-4');
-        panel.classList.replace('sm:translate-y-0', 'sm:translate-y-8');
-    }
+
+    modal.classList.remove('modal-visible');
+
     setTimeout(() => {
         modal.classList.add('hidden');
         document.body.style.overflow = '';
-    }, 500); // Increased timeout to match the 500ms duration of the new CSS transition
+    }, 200);
 };
 
 // Close modals on Escape
@@ -64,10 +46,10 @@ document.addEventListener('keydown', (e) => {
 // ===================== TOAST SYSTEM =====================
 window.showToast = function (message, type = 'success') {
     const colors = {
-        success: 'bg-emerald-600',
-        error: 'bg-red-600',
-        warning: 'bg-amber-600',
-        info: 'bg-blue-600',
+        success: 'toast-success',
+        error: 'toast-error',
+        warning: 'toast-warning',
+        info: 'toast-info',
     };
     const icons = {
         success: 'check-circle',
@@ -75,25 +57,25 @@ window.showToast = function (message, type = 'success') {
         warning: 'alert-triangle',
         info: 'info',
     };
-    
+
     let container = document.getElementById('toast-container');
     if (!container) {
         container = document.createElement('div');
         container.id = 'toast-container';
-        container.className = 'fixed top-4 right-4 z-[9999] flex flex-col gap-2';
+        container.className = 'toast-container';
         document.body.appendChild(container);
     }
-    
+
     const toast = document.createElement('div');
-    toast.className = `${colors[type]} text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-3 text-sm font-medium transform translate-x-full transition-transform duration-300 max-w-sm`;
-    toast.innerHTML = `<i data-lucide="${icons[type]}" class="h-5 w-5 shrink-0"></i><span>${message}</span>`;
+    toast.className = `toast ${colors[type]}`;
+    toast.innerHTML = `<i data-lucide="${icons[type]}" class="icon"></i><span>${message}</span>`;
     container.appendChild(toast);
     window.initLucide();
-    
-    requestAnimationFrame(() => toast.classList.replace('translate-x-full', 'translate-x-0'));
-    
+
+    requestAnimationFrame(() => toast.classList.add('toast-show'));
+
     setTimeout(() => {
-        toast.classList.replace('translate-x-0', 'translate-x-full');
+        toast.classList.remove('toast-show');
         setTimeout(() => toast.remove(), 300);
     }, 4000);
 };
@@ -102,21 +84,20 @@ window.showToast = function (message, type = 'success') {
 window.submitModalForm = async function (formId, url, modalId, onSuccess) {
     const form = document.getElementById(formId);
     if (!form) return;
-    
+
     const formData = new FormData(form);
     const submitBtn = form.querySelector('[type="submit"], .btn-submit-modal');
     const originalHtml = submitBtn ? submitBtn.innerHTML : '';
-    
+
     if (submitBtn) {
         submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i data-lucide="loader-2" class="h-4 w-4 animate-spin"></i> Guardando...';
+        submitBtn.innerHTML = '<i data-lucide="loader-2" class="icon spin"></i> Guardando...';
         window.initLucide();
     }
-    
-    // Clear previous errors
+
     form.querySelectorAll('.field-error').forEach(e => e.remove());
-    form.querySelectorAll('.border-red-500').forEach(e => e.classList.remove('border-red-500'));
-    
+    form.querySelectorAll('.is-invalid').forEach(e => e.classList.remove('is-invalid'));
+
     try {
         const response = await fetch(url, {
             method: 'POST',
@@ -126,9 +107,9 @@ window.submitModalForm = async function (formId, url, modalId, onSuccess) {
             },
             body: formData,
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             window.showToast(data.message, 'success');
             window.closeModal(modalId);
@@ -137,21 +118,18 @@ window.submitModalForm = async function (formId, url, modalId, onSuccess) {
         } else {
             if (data.errors) {
                 Object.entries(data.errors).forEach(([field, messages]) => {
-                    // Trata arrays en inputs como `libros.*` buscando `name="libros[]"` u otras variantes
-                    // Para simplificar, buscamos nombres exactos primero
                     let input = form.querySelector(`[name="${field}"]`);
                     if (!input && field.includes('.')) {
-                         const parts = field.split('.');
-                         // Por ejemplo, "detalles.0.entregas" -> `name="detalles[0][entregas]"`
-                         if(parts.length === 3) {
-                             input = form.querySelector(`[name="${parts[0]}[${parts[1]}][${parts[2]}]"]`);
-                         }
+                        const parts = field.split('.');
+                        if (parts.length === 3) {
+                            input = form.querySelector(`[name="${parts[0]}[${parts[1]}][${parts[2]}]"]`);
+                        }
                     }
 
                     if (input) {
-                        input.classList.add('border-red-500');
+                        input.classList.add('is-invalid');
                         const errDiv = document.createElement('p');
-                        errDiv.className = 'field-error text-xs text-red-500 mt-1';
+                        errDiv.className = 'field-error form-error-app';
                         errDiv.textContent = messages[0];
                         input.parentElement.appendChild(errDiv);
                     }
@@ -172,41 +150,37 @@ window.submitModalForm = async function (formId, url, modalId, onSuccess) {
 
 // ===================== SIDEBAR TOGGLE =====================
 document.addEventListener('DOMContentLoaded', () => {
-    const wrapper = document.getElementById('sidebar-wrapper');
+    const wrapper = document.getElementById('appWrapper');
     const sidebar = document.getElementById('appSidebar');
     const overlay = document.getElementById('sidebarOverlay');
     const toggleBtn = document.getElementById('toggleSidebar');
     const closeBtn = document.getElementById('closeSidebar');
 
-    if (wrapper) {
+    if (wrapper && sidebar) {
         const savedState = localStorage.getItem('sidebar_state') || 'expanded';
         if (window.innerWidth >= 768) {
-            wrapper.setAttribute('data-state', savedState);
+            wrapper.setAttribute('data-sidebar-expanded', savedState === 'expanded' ? 'true' : 'false');
+            if (savedState === 'collapsed') {
+                sidebar.classList.add('collapsed');
+            }
         }
 
         function toggleSidebar() {
             if (window.innerWidth < 768) {
-                sidebar.classList.toggle('-translate-x-full');
-                if (overlay) overlay.classList.toggle('hidden');
+                sidebar.classList.toggle('show');
+                if (overlay) overlay.classList.toggle('d-none');
             } else {
-                const currentState = wrapper.getAttribute('data-state');
-                const newState = currentState === 'expanded' ? 'collapsed' : 'expanded';
-                wrapper.setAttribute('data-state', newState);
-                localStorage.setItem('sidebar_state', newState);
+                const isExpanded = wrapper.getAttribute('data-sidebar-expanded') === 'true';
+                const newExpanded = !isExpanded;
+                wrapper.setAttribute('data-sidebar-expanded', newExpanded ? 'true' : 'false');
+                sidebar.classList.toggle('collapsed', !newExpanded);
+                localStorage.setItem('sidebar_state', newExpanded ? 'expanded' : 'collapsed');
             }
         }
-        
-        const style = document.createElement('style');
-        style.innerHTML = `
-            .group\\/sidebar-wrapper[data-state="expanded"] [data-tooltip]:hover::after {
-                display: none;
-            }
-        `;
-        document.head.appendChild(style);
 
-        if(toggleBtn) toggleBtn.addEventListener('click', toggleSidebar);
-        if(closeBtn) closeBtn.addEventListener('click', toggleSidebar);
-        if(overlay) overlay.addEventListener('click', toggleSidebar);
+        if (toggleBtn) toggleBtn.addEventListener('click', toggleSidebar);
+        if (closeBtn) closeBtn.addEventListener('click', toggleSidebar);
+        if (overlay) overlay.addEventListener('click', toggleSidebar);
 
         window.addEventListener('keydown', (e) => {
             if (e.key === 'b' && (e.metaKey || e.ctrlKey)) {

@@ -5,15 +5,26 @@
 
 @section('content')
 <div class="page-header">
-    <h1><i class="bi bi-person-vcard"></i> {{ $estudiante->nombre_completo }}</h1>
-    <div>
-        <a href="{{ route('estudiantes.edit', $estudiante) }}" class="btn btn-outline-primary"><i class="bi bi-pencil"></i> Editar</a>
-        <a href="{{ route('estudiantes.index') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Volver</a>
+    <div class="page-header-row">
+        <h1 class="page-title d-flex align-items-center gap-2">
+            <span class="student-avatar">
+                <i data-lucide="person-vcard" class="icon"></i>
+            </span>
+            {{ $estudiante->nombre_completo }}
+        </h1>
+        <div class="d-flex gap-2">
+            <a href="{{ route('estudiantes.edit', $estudiante) }}" class="btn-app btn-app-primary">
+                <i data-lucide="pencil" class="icon"></i> Editar
+            </a>
+            <a href="{{ route('estudiantes.index') }}" class="btn-app btn-app-secondary">
+                <i data-lucide="arrow-left" class="icon"></i> Volver
+            </a>
+        </div>
     </div>
 </div>
 
-<div class="card-sbl">
-    <div class="card-body">
+<div class="card-app">
+    <div class="card-body-base">
         <dl class="row mb-0">
             <dt class="col-sm-3">Codigo</dt>             <dd class="col-sm-9">{{ $estudiante->codigo ?? '-' }}</dd>
             <dt class="col-sm-3">DNI</dt>                <dd class="col-sm-9">{{ $estudiante->dni ?? '-' }}</dd>

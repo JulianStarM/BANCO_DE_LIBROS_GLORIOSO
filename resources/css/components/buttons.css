@@ -1,0 +1,154 @@
+.btn-app {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    border-radius: var(--border-radius);
+    border: 1px solid transparent;
+    transition: color var(--transition-fast), background-color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+    text-decoration: none;
+    cursor: pointer;
+    line-height: 1.5;
+}
+
+.btn-app-primary {
+    background-color: var(--color-primary);
+    color: #ffffff;
+    border-color: var(--color-primary);
+}
+
+.btn-app-primary:hover {
+    background-color: var(--color-primary-dark);
+    border-color: var(--color-primary-dark);
+    color: #ffffff;
+}
+
+.btn-app-secondary {
+    background-color: #ffffff;
+    color: var(--color-slate-700);
+    border-color: var(--border-color);
+}
+
+.btn-app-secondary:hover {
+    background-color: var(--color-slate-50);
+    color: var(--color-slate-900);
+    border-color: var(--color-slate-300);
+}
+
+.btn-app-success {
+    background-color: var(--color-success);
+    color: #ffffff;
+    border-color: var(--color-success);
+}
+
+.btn-app-success:hover {
+    background-color: #059669;
+    border-color: #059669;
+    color: #ffffff;
+}
+
+.btn-app-danger {
+    background-color: var(--color-danger);
+    color: #ffffff;
+    border-color: var(--color-danger);
+}
+
+.btn-app-danger:hover {
+    background-color: #e11d48;
+    border-color: #e11d48;
+    color: #ffffff;
+}
+
+.btn-app-warning {
+    background-color: var(--color-warning);
+    color: #ffffff;
+    border-color: var(--color-warning);
+}
+
+.btn-app-warning:hover {
+    background-color: #d97706;
+    border-color: #d97706;
+    color: #ffffff;
+}
+
+.btn-app-info {
+    background-color: var(--color-info);
+    color: #ffffff;
+    border-color: var(--color-info);
+}
+
+.btn-app-info:hover {
+    background-color: #0284c7;
+    border-color: #0284c7;
+    color: #ffffff;
+}
+
+.btn-app-light {
+    background-color: var(--color-slate-100);
+    color: var(--color-slate-700);
+    border-color: var(--color-slate-200);
+}
+
+.btn-app-light:hover {
+    background-color: var(--color-slate-200);
+    color: var(--color-slate-900);
+    border-color: var(--color-slate-300);
+}
+
+.btn-app-sm {
+    padding: 0.35rem 0.75rem;
+    font-size: var(--font-size-xs);
+}
+
+.btn-app-lg {
+    padding: 0.625rem 1.25rem;
+    font-size: 1rem;
+}
+
+.btn-app-icon {
+    padding: 0.5rem;
+}
+
+.btn-app-round {
+    border-radius: 50%;
+}
+
+/* Botones de acción en tablas */
+.btn-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border-radius: var(--border-radius-sm);
+    border: 1px solid transparent;
+    background-color: transparent;
+    color: var(--color-slate-500);
+    transition: color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.btn-action:hover {
+    background-color: var(--color-slate-100);
+    color: var(--color-slate-700);
+}
+
+.btn-action-primary:hover {
+    background-color: var(--color-primary-light);
+    color: var(--color-primary);
+}
+
+.btn-action-danger:hover {
+    background-color: var(--color-danger-light);
+    color: var(--color-danger);
+}
+
+.btn-app:disabled,
+.btn-app.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}

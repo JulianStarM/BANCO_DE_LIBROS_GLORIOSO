@@ -22,9 +22,9 @@ document.addEventListener('DOMContentLoaded', function() {
         mBuscar.addEventListener('input', function() {
             const q = this.value.trim();
             clearTimeout(timeoutBusq);
-            if (q.length < 2) { 
-                if(mResultados) mResultados.classList.add('hidden'); 
-                return; 
+            if (q.length < 2) {
+                if(mResultados) mResultados.classList.add('d-none');
+                return;
             }
             timeoutBusq = setTimeout(() => {
                 fetch(`${pendientesUrl}?q=${encodeURIComponent(q)}`)
@@ -33,17 +33,17 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (!mResultados) return;
                         mResultados.innerHTML = '';
                         if (data.length === 0) {
-                            mResultados.innerHTML = '<div class="p-3 text-sm text-slate-500">No se encontraron entregas pendientes.</div>';
+                            mResultados.innerHTML = '<div class="result-empty">No se encontraron entregas pendientes.</div>';
                         } else {
                             data.forEach(ent => {
                                 const div = document.createElement('div');
-                                div.className = 'p-3 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0 text-sm';
-                                div.innerHTML = `<div class="font-medium text-slate-800">${ent.codigo_general}</div><div class="text-xs text-slate-500">${ent.estudiante.apellidos}, ${ent.estudiante.nombres} | DNI: ${ent.estudiante.dni}</div>`;
+                                div.className = 'result-item';
+                                div.innerHTML = `<div class="result-title">${ent.codigo_general}</div><div class="result-meta">${ent.estudiante.apellidos}, ${ent.estudiante.nombres} | DNI: ${ent.estudiante.dni}</div>`;
                                 div.addEventListener('click', () => seleccionarEntregaModal(ent));
                                 mResultados.appendChild(div);
                             });
                         }
-                        mResultados.classList.remove('hidden');
+                        mResultados.classList.remove('d-none');
                     });
             }, 300);
         });
@@ -51,37 +51,37 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.addEventListener('click', (e) => {
         if (mBuscar && !mBuscar.contains(e.target) && mResultados && !mResultados.contains(e.target)) {
-            mResultados.classList.add('hidden');
+            mResultados.classList.add('d-none');
         }
     });
 
     function seleccionarEntregaModal(ent) {
-        if(mResultados) mResultados.classList.add('hidden'); 
-        if(mBuscarWrapper) mBuscarWrapper.classList.add('hidden');
-        
+        if(mResultados) mResultados.classList.add('d-none');
+        if(mBuscarWrapper) mBuscarWrapper.classList.add('d-none');
+
         if(mIdEntrega) mIdEntrega.value = ent.id;
-        
+
         const lblCod = document.getElementById('modal_dev_lbl_cod');
         const lblEst = document.getElementById('modal_dev_lbl_est');
         const lblFecha = document.getElementById('modal_dev_lbl_fecha');
-        
+
         if(lblCod) lblCod.textContent = ent.codigo_general;
         if(lblEst) lblEst.textContent = `${ent.estudiante.apellidos}, ${ent.estudiante.nombres}`;
         if(lblFecha) lblFecha.textContent = ent.fecha_entrega;
-        
+
         if(mListaLibros) {
             mListaLibros.innerHTML = '';
             ent.detalles.forEach((d, i) => {
                 mListaLibros.innerHTML += `
                     <tr>
-                        <td class="px-4 py-3">
+                        <td>
                             <input type="hidden" name="detalles[${i}][id_detalle_entrega]" value="${d.id}">
                             <input type="hidden" name="detalles[${i}][id_libro]" value="${d.id_libro}">
                             ${i+1}
                         </td>
-                        <td class="px-4 py-3 font-medium text-slate-800">${d.libro.nombre}</td>
-                        <td class="px-4 py-3 text-center">
-                            <select name="detalles[${i}][entregas]" class="block w-full max-w-[150px] mx-auto rounded-lg border border-slate-300 px-2 py-1 text-sm focus:border-blue-500">
+                        <td class="fw-medium text-slate-800">${d.libro.nombre}</td>
+                        <td class="text-center">
+                            <select name="detalles[${i}][entregas]" class="form-select-app mx-auto" style="max-width: 150px;">
                                 <option value="bueno" selected>Bueno</option>
                                 <option value="regular">Regular</option>
                                 <option value="malo">Malo</option>
@@ -93,33 +93,31 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        if(mInfo) mInfo.classList.remove('hidden'); 
-        if(mSecLibros) mSecLibros.classList.remove('hidden'); 
-        if(mSecFirmante) mSecFirmante.classList.remove('hidden');
-        
+        if(mInfo) mInfo.classList.remove('d-none');
+        if(mSecLibros) mSecLibros.classList.remove('d-none');
+        if(mSecFirmante) mSecFirmante.classList.remove('d-none');
+
         if(mBtnGuardar) {
-            mBtnGuardar.disabled = false; 
-            mBtnGuardar.classList.remove('opacity-50','cursor-not-allowed');
+            mBtnGuardar.disabled = false;
         }
     }
 
     const btnCambiar = document.getElementById('modal_dev_btn_cambiar');
     if (btnCambiar) {
         btnCambiar.addEventListener('click', () => {
-            if(mInfo) mInfo.classList.add('hidden'); 
-            if(mSecLibros) mSecLibros.classList.add('hidden'); 
-            if(mSecFirmante) mSecFirmante.classList.add('hidden');
-            if(mBuscarWrapper) mBuscarWrapper.classList.remove('hidden'); 
-            
+            if(mInfo) mInfo.classList.add('d-none');
+            if(mSecLibros) mSecLibros.classList.add('d-none');
+            if(mSecFirmante) mSecFirmante.classList.add('d-none');
+            if(mBuscarWrapper) mBuscarWrapper.classList.remove('d-none');
+
             if(mBuscar) {
-                mBuscar.value = ''; 
+                mBuscar.value = '';
                 mBuscar.focus();
             }
             if(mIdEntrega) mIdEntrega.value = '';
-            
+
             if(mBtnGuardar) {
-                mBtnGuardar.disabled = true; 
-                mBtnGuardar.classList.add('opacity-50','cursor-not-allowed');
+                mBtnGuardar.disabled = true;
             }
         });
     }

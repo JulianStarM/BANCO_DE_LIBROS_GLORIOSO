@@ -27,27 +27,27 @@ document.addEventListener('DOMContentLoaded', function() {
         mBuscar.addEventListener('input', function() {
             const q = this.value.trim();
             clearTimeout(timeoutBusq);
-            if (q.length < 2) { mResultados.classList.add('hidden'); return; }
+            if (q.length < 2) { mResultados.classList.add('d-none'); return; }
             timeoutBusq = setTimeout(() => {
                 fetch(`${buscarUrl}?q=${encodeURIComponent(q)}`)
                     .then(r => r.json())
                     .then(data => {
                         mResultados.innerHTML = '';
                         if (data.length === 0) {
-                            mResultados.innerHTML = '<div class="p-3 text-sm text-slate-500">No se encontraron estudiantes.</div>';
+                            mResultados.innerHTML = '<div class="result-empty">No se encontraron estudiantes.</div>';
                         } else {
                             data.forEach(est => {
                                 const div = document.createElement('div');
-                                div.className = 'p-3 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0 text-sm';
-                                div.innerHTML = `<div class="font-medium text-slate-800">${est.apellidos}, ${est.nombres}</div><div class="text-xs text-slate-500">DNI: ${est.dni} | ${est.grado}° ${est.nivel || ''}</div>`;
+                                div.className = 'result-item';
+                                div.innerHTML = `<div class="result-title">${est.apellidos}, ${est.nombres}</div><div class="result-meta">DNI: ${est.dni} | ${est.grado}° ${est.nivel || ''}</div>`;
                                 div.addEventListener('click', () => seleccionarEstModal(est));
                                 mResultados.appendChild(div);
                             });
                         }
-                        mResultados.classList.remove('hidden');
-                    }).catch(() => { 
-                        mResultados.innerHTML = '<div class="p-3 text-sm text-red-500">Error al buscar.</div>'; 
-                        mResultados.classList.remove('hidden'); 
+                        mResultados.classList.remove('d-none');
+                    }).catch(() => {
+                        mResultados.innerHTML = '<div class="result-empty text-danger">Error al buscar.</div>';
+                        mResultados.classList.remove('d-none');
                     });
             }, 300);
         });
@@ -55,82 +55,85 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.addEventListener('click', (e) => {
         if (mBuscar && !mBuscar.contains(e.target) && mResultados && !mResultados.contains(e.target)) {
-            mResultados.classList.add('hidden');
+            mResultados.classList.add('d-none');
         }
     });
 
     function seleccionarEstModal(est) {
-        mResultados.classList.add('hidden');
-        mBuscarWrapper.classList.add('hidden');
+        mResultados.classList.add('d-none');
+        mBuscarWrapper.classList.add('d-none');
         mIdEst.value = est.id;
         document.getElementById('modal_lbl_nombre').textContent = `${est.apellidos}, ${est.nombres}`;
         document.getElementById('modal_lbl_dni').textContent = est.dni;
         document.getElementById('modal_lbl_grado').textContent = est.grado + '°';
         document.getElementById('modal_lbl_nivel').textContent = (est.nivel || '').charAt(0).toUpperCase() + (est.nivel || '').slice(1);
-        
+
         if (est.tiene_entrega) {
-            mAlerta.classList.remove('hidden');
-            mBtnGuardar.disabled = true; 
-            mBtnGuardar.classList.add('opacity-50','cursor-not-allowed');
-            mSecLibros.classList.add('hidden'); 
-            mSecRecepcion.classList.add('hidden');
+            mAlerta.classList.remove('d-none');
+            mBtnGuardar.disabled = true;
+            mSecLibros.classList.add('d-none');
+            mSecRecepcion.classList.add('d-none');
         } else {
-            mAlerta.classList.add('hidden');
+            mAlerta.classList.add('d-none');
             cargarLibrosModal(est.grado, est.nivel);
-            mSecRecepcion.classList.remove('hidden');
+            mSecRecepcion.classList.remove('d-none');
         }
-        mEstInfo.classList.remove('hidden');
-        window.initLucide();
+        mEstInfo.classList.remove('d-none');
+        window.initLucide?.();
     }
 
     document.getElementById('modal_btn_cambiar_est')?.addEventListener('click', () => {
-        mEstInfo.classList.add('hidden'); 
-        mSecLibros.classList.add('hidden'); 
-        mSecRecepcion.classList.add('hidden');
-        mBuscarWrapper.classList.remove('hidden'); 
-        mBuscar.value = ''; 
+        mEstInfo.classList.add('d-none');
+        mSecLibros.classList.add('d-none');
+        mSecRecepcion.classList.add('d-none');
+        mBuscarWrapper.classList.remove('d-none');
+        mBuscar.value = '';
         mIdEst.value = '';
-        mBtnGuardar.disabled = true; 
-        mBtnGuardar.classList.add('opacity-50','cursor-not-allowed');
+        mBtnGuardar.disabled = true;
         mBuscar.focus();
     });
 
     function cargarLibrosModal(grado, nivel) {
-        mSecLibros.classList.remove('hidden'); 
-        mListaLibros.innerHTML = ''; 
-        mLoadingLibros.classList.remove('hidden');
-        
+        mSecLibros.classList.remove('d-none');
+        mListaLibros.innerHTML = '';
+        mLoadingLibros.classList.remove('d-none');
+
         fetch(`${librosUrl}?grado=${grado}&nivel=${nivel}`)
             .then(r => r.json())
             .then(data => {
-                mLoadingLibros.classList.add('hidden');
+                mLoadingLibros.classList.add('d-none');
                 if (data.length === 0) {
-                    mListaLibros.innerHTML = '<div class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-600">No hay libros disponibles para este grado.</div>';
-                    mBtnGuardar.disabled = true; 
-                    mBtnGuardar.classList.add('opacity-50','cursor-not-allowed');
+                    mListaLibros.innerHTML = '<div class="alert alert-light border small mb-0">No hay libros disponibles para este grado.</div>';
+                    mBtnGuardar.disabled = true;
                     return;
                 }
                 let html = '';
                 data.forEach(l => {
-                    html += `<label class="flex items-center justify-between p-2.5 border border-slate-200 rounded-xl hover:bg-slate-50 cursor-pointer has-[:checked]:bg-blue-50 has-[:checked]:border-blue-200 text-sm">
-                        <div class="flex items-center gap-2"><input type="checkbox" name="libros[]" value="${l.id}" checked class="h-4 w-4 rounded border-slate-300 text-blue-600 modal-cb-libro"><div><p class="font-semibold text-slate-800">${l.nombre}</p><p class="text-xs text-slate-500">${l.area}</p></div></div>
-                        <span class="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-md text-xs">Disp: ${l.cantidad_disponible}</span></label>`;
+                    html += `<label class="book-option">
+                        <div class="d-flex align-items-center gap-3">
+                            <input type="checkbox" name="libros[]" value="${l.id}" checked class="form-check-input modal-cb-libro">
+                            <div>
+                                <p class="book-title mb-0">${l.nombre}</p>
+                                <p class="book-meta mb-0">${l.area}</p>
+                            </div>
+                        </div>
+                        <span class="stock-badge success">Disp: ${l.cantidad_disponible}</span>
+                    </label>`;
                 });
                 mListaLibros.innerHTML = html;
                 actualizarTotalModal();
                 document.querySelectorAll('.modal-cb-libro').forEach(cb => cb.addEventListener('change', actualizarTotalModal));
+                window.initLucide?.();
             });
     }
 
     function actualizarTotalModal() {
         const count = document.querySelectorAll('.modal-cb-libro:checked').length;
         mLblTotal.textContent = `${count} libros seleccionados`;
-        if (count === 0) { 
-            mBtnGuardar.disabled = true; 
-            mBtnGuardar.classList.add('opacity-50','cursor-not-allowed'); 
-        } else { 
-            mBtnGuardar.disabled = false; 
-            mBtnGuardar.classList.remove('opacity-50','cursor-not-allowed'); 
+        if (count === 0) {
+            mBtnGuardar.disabled = true;
+        } else {
+            mBtnGuardar.disabled = false;
         }
     }
 
@@ -139,7 +142,7 @@ document.addEventListener('DOMContentLoaded', function() {
         radio.addEventListener('change', (e) => {
             const apoderadoForm = document.getElementById('modal_form_apoderado');
             if (apoderadoForm) {
-                apoderadoForm.classList.toggle('hidden', e.target.value !== 'apoderado');
+                apoderadoForm.classList.toggle('d-none', e.target.value !== 'apoderado');
             }
         });
     });

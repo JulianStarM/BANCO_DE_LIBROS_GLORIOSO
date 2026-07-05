@@ -4,29 +4,29 @@
 @section('page-title', 'Editar Material Educativo')
 
 @section('content')
-<div class="mb-6">
-    <div class="flex items-center gap-3 mb-2">
-        <a href="{{ route('libros.index') }}" class="text-slate-500 hover:text-slate-700 transition-colors">
-            <i data-lucide="arrow-left" class="h-5 w-5"></i>
+<div class="mb-4">
+    <div class="d-flex align-items-center gap-3 mb-2">
+        <a href="{{ route('libros.index') }}" class="text-slate-500 text-decoration-none">
+            <i data-lucide="arrow-left" class="icon" style="width: 1.25rem; height: 1.25rem;"></i>
         </a>
-        <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Editar Libro: {{ $libro->codigo_libro }}</h2>
+        <h2 class="h3 fw-bold text-slate-800 mb-0">Editar Libro: {{ $libro->codigo_libro }}</h2>
     </div>
-    <p class="text-sm text-slate-500 ml-8">Actualiza los datos y stock de este material educativo.</p>
+    <p class="text-sm text-slate-500 mb-0" style="margin-left: 2.25rem;">Actualiza los datos y stock de este material educativo.</p>
 </div>
 
-<div class="bg-white rounded-2xl border border-slate-100 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] p-6">
-    <form action="{{ route('libros.update', $libro) }}" method="POST" class="space-y-6">
+<div class="card-app p-4">
+    <form action="{{ route('libros.update', $libro) }}" method="POST">
         @csrf
         @method('PUT')
-        
+
         @include('libros.form')
-        
-        <div class="pt-4 border-t border-slate-100 flex justify-end gap-3">
-            <a href="{{ route('libros.index') }}" class="px-5 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors">
+
+        <div class="d-flex justify-content-end gap-2 pt-3 mt-4" style="border-top: 1px solid var(--border-color);">
+            <a href="{{ route('libros.index') }}" class="btn-app btn-app-secondary">
                 Cancelar
             </a>
-            <button type="submit" class="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-xl hover:bg-blue-700 shadow-sm transition-colors flex items-center gap-2">
-                <i data-lucide="save" class="h-4 w-4"></i>
+            <button type="submit" class="btn-app btn-app-primary">
+                <i data-lucide="save" class="icon"></i>
                 Guardar Cambios
             </button>
         </div>
