@@ -50,6 +50,7 @@ Route::middleware('auth')->group(function () {
     Route::get('entregas/api/libros-por-grado', [EntregaController::class, 'librosPorGrado'])->name('entregas.api.libros-por-grado');
     Route::post('entregas/api/store', [EntregaController::class, 'storeApi'])->name('entregas.api.store');
     Route::resource('entregas', EntregaController::class);
+    Route::get('entregas/{entrega}/ver-constancia', [EntregaController::class, 'verConstancia'])->name('entregas.ver-constancia');
     Route::get('entregas/{entrega}/constancia', [EntregaController::class, 'constancia'])->name('entregas.constancia');
 
     Route::get('reportes', [ReporteController::class, 'index'])->name('reportes.index');
@@ -60,6 +61,7 @@ Route::middleware('auth')->group(function () {
     Route::get('devoluciones/api/pendientes', [DevolucionController::class, 'pendientesApi'])->name('devoluciones.api.pendientes');
     Route::post('devoluciones/api/store', [DevolucionController::class, 'storeApi'])->name('devoluciones.api.store');
     Route::resource('devoluciones', DevolucionController::class);
+    Route::get('devoluciones/{devolucion}/ver-constancia', [DevolucionController::class, 'verConstancia'])->name('devoluciones.ver-constancia');
     Route::get('devoluciones/{devolucion}/constancia', [DevolucionController::class, 'constancia'])->name('devoluciones.constancia');
 
 });

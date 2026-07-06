@@ -90,7 +90,15 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-lg-3">
+                    <div class="col-lg-2">
+                        <select name="anio_escolar" class="form-select-app">
+                            <option value="">Todos los años</option>
+                            @foreach($anioEscolarOptions as $id => $anio)
+                                <option value="{{ $id }}" @selected(request('anio_escolar') == $id)>Año {{ $anio }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-lg-2">
                         <button type="submit" class="btn-app btn-app-primary w-100">
                             <i data-lucide="filter" class="icon"></i> Filtrar
                         </button>
@@ -134,8 +142,17 @@
                                 @endif
                             </td>
                             <td class="text-end">
-                                <a href="{{ route('entregas.show', $entrega) }}" class="btn-action btn-action-primary">
+                                <a href="{{ route('entregas.show', $entrega) }}" class="btn-action btn-action-primary" title="Ver detalle">
                                     <i data-lucide="eye" class="icon"></i>
+                                </a>
+                                <a href="{{ route('entregas.edit', $entrega) }}" class="btn-action btn-action-warning" title="Editar">
+                                    <i data-lucide="pencil" class="icon"></i>
+                                </a>
+                                <a href="{{ route('entregas.ver-constancia', $entrega) }}" target="_blank" class="btn-action btn-action-success" title="Ver constancia">
+                                    <i data-lucide="file-text" class="icon"></i>
+                                </a>
+                                <a href="{{ route('entregas.constancia', $entrega) }}" class="btn-action btn-action-secondary" title="Descargar PDF">
+                                    <i data-lucide="download" class="icon"></i>
                                 </a>
                             </td>
                         </tr>

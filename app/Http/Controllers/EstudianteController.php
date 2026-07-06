@@ -3,26 +3,30 @@
 namespace App\Http\Controllers;
 
 use App\Models\Estudiante;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class EstudianteController extends Controller
 {
     public function index(Request $request)
     {
-        $q       = trim((string) $request->get('q', ''));
-        $grado   = $request->get('grado');
+        $q = trim((string) $request->get('q', ''));
+        $grado = $request->get('grado');
         $seccion = $request->get('seccion');
-        $nivel   = $request->get('nivel');
+        $nivel = $request->get('nivel');
 
         $estudiantes = Estudiante::query()
             ->when($q !== '', function ($query) use ($q) {
                 $query->where(function ($w) use ($q) {
                     $w->where('nombres', 'like', "%{$q}%")
-                      ->orWhere('apellidos', 'like', "%{$q}%")
-                      ->orWhere('dni', 'like', "%{$q}%")
-                      ->orWhere('codigo_estudiante', 'like', "%{$q}%");
+                        ->orWhere('apellidos', 'like', "%{$q}%")
+                        ->orWhere('dni', 'like', "%{$q}%")
+                        ->orWhere('codigo_estudiante', 'like', "%{$q}%");
                 });
             })
             ->when($grado, fn ($q2) => $q2->where('grado', $grado))
@@ -44,7 +48,7 @@ class EstudianteController extends Controller
     public function create()
     {
         return view('estudiantes.form', [
-            'estudiante' => new Estudiante()
+            'estudiante' => new Estudiante,
         ]);
     }
 
@@ -83,13 +87,97 @@ class EstudianteController extends Controller
             ->with('success', 'Estudiante actualizado correctamente.');
     }
 
-    public function destroy(Estudiante $estudiante)
+    public function destroy(Request $request, Estudiante $estudiante)
     {
-        $estudiante->delete();
+        $forzar = $request->boolean('force');
 
-        return redirect()
-            ->route('estudiantes.index')
-            ->with('success', 'Estudiante eliminado correctamente.');
+        if ($forzar) {
+            DB::beginTransaction();
+            try {
+                $this->eliminarEnCascada($estudiante);
+                DB::commit();
+
+                return redirect()
+                    ->route('estudiantes.index')
+                    ->with('success', 'Estudiante y todos sus registros relacionados eliminados correctamente.');
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                return redirect()
+                    ->route('estudiantes.index')
+                    ->with('error', 'Error al eliminar en cascada: '.$e->getMessage());
+            }
+        }
+
+        try {
+            $estudiante->delete();
+
+            return redirect()
+                ->route('estudiantes.index')
+                ->with('success', 'Estudiante eliminado correctamente.');
+        } catch (QueryException $e) {
+            if (str_contains($e->getMessage(), 'foreign key constraint')) {
+                $relaciones = $this->contarRelaciones($estudiante);
+                $mensaje = 'No se puede eliminar este estudiante porque tiene registros vinculados:';
+                foreach ($relaciones as $nombre => $cantidad) {
+                    if ($cantidad > 0) {
+                        $mensaje .= "\n• {$nombre}: {$cantidad}";
+                    }
+                }
+                $mensaje .= "\n\nSi elimina al estudiante, también se borrarán TODOS estos registros de forma permanente.";
+
+                return redirect()
+                    ->route('estudiantes.index')
+                    ->with('error', $mensaje)
+                    ->with('estudiante_para_forzar', $estudiante->id);
+            }
+
+            throw $e;
+        }
+    }
+
+    /**
+     * Elimina un estudiante y todas sus relaciones en cascada.
+     */
+    private function eliminarEnCascada(Estudiante $estudiante): void
+    {
+        // 1. Eliminar detalles de devoluciones y devoluciones
+        foreach ($estudiante->devoluciones as $devolucion) {
+            $devolucion->detalles()->delete();
+            $devolucion->delete();
+        }
+
+        // 2. Eliminar detalles de entregas y entregas
+        foreach ($estudiante->entregas as $entrega) {
+            $entrega->detalles()->delete();
+            $entrega->delete();
+        }
+
+        // 3. Eliminar observaciones y reposiciones
+        $estudiante->observacionesGenerales()->delete();
+        $estudiante->reposiciones()->delete();
+
+        // 4. Desvincular padres/apoderados
+        $estudiante->padres()->detach();
+
+        // 5. Eliminar estudiante
+        $estudiante->delete();
+    }
+
+    /**
+     * Cuenta las relaciones de un estudiante para mostrar en el mensaje de error.
+     *
+     * @return array<string, int>
+     */
+    private function contarRelaciones(Estudiante $estudiante): array
+    {
+        return [
+            'Entregas' => $estudiante->entregas()->count(),
+            'Devoluciones' => $estudiante->devoluciones()->count(),
+            'Observaciones' => $estudiante->observacionesGenerales()->count(),
+            'Reposiciones' => $estudiante->reposiciones()->count(),
+            'Apoderados vinculados' => $estudiante->padres()->count(),
+        ];
     }
 
     /**
@@ -109,7 +197,7 @@ class EstudianteController extends Controller
                 'message' => 'Estudiante registrado correctamente.',
                 'estudiante' => $estudiante,
             ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error de validación.',
@@ -118,7 +206,7 @@ class EstudianteController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error al registrar: ' . $e->getMessage(),
+                'message' => 'Error al registrar: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -136,9 +224,9 @@ class EstudianteController extends Controller
         $estudiantes = Estudiante::query()
             ->where(function ($w) use ($q) {
                 $w->where('nombres', 'like', "%{$q}%")
-                  ->orWhere('apellidos', 'like', "%{$q}%")
-                  ->orWhere('dni', 'like', "%{$q}%")
-                  ->orWhere('codigo_estudiante', 'like', "%{$q}%");
+                    ->orWhere('apellidos', 'like', "%{$q}%")
+                    ->orWhere('dni', 'like', "%{$q}%")
+                    ->orWhere('codigo_estudiante', 'like', "%{$q}%");
             })
             ->orderBy('apellidos')
             ->limit(20)
@@ -154,17 +242,17 @@ class EstudianteController extends Controller
                 'required',
                 'string',
                 'max:20',
-                Rule::unique('estudiantes', 'codigo_estudiante')->ignore($id)
+                Rule::unique('estudiantes', 'codigo_estudiante')->ignore($id),
             ],
 
             'dni' => [
                 'required',
                 'string',
                 'max:15',
-                Rule::unique('estudiantes', 'dni')->ignore($id)
+                Rule::unique('estudiantes', 'dni')->ignore($id),
             ],
 
-            'nombres'   => ['required', 'string', 'max:100'],
+            'nombres' => ['required', 'string', 'max:100'],
             'apellidos' => ['required', 'string', 'max:100'],
 
             'sexo' => ['required', 'in:M,F'],
@@ -183,7 +271,7 @@ class EstudianteController extends Controller
             'turno' => ['nullable', 'in:mañana,tarde,noche'],
 
             'direccion' => ['nullable', 'string', 'max:255'],
-            'telefono'  => ['nullable', 'string', 'max:20'],
+            'telefono' => ['nullable', 'string', 'max:20'],
 
             'id_anio_escolar' => ['required', 'integer'],
         ]);
@@ -195,19 +283,19 @@ class EstudianteController extends Controller
         $dni = $request->dni;
 
         // Intentar usar el API gratuito de apis.net.pe v1
-        $response = \Illuminate\Support\Facades\Http::withoutVerifying()->get("https://api.apis.net.pe/v1/dni?numero={$dni}");
-        
-        if ($response->successful() && !isset($response['error'])) {
+        $response = Http::withoutVerifying()->get("https://api.apis.net.pe/v1/dni?numero={$dni}");
+
+        if ($response->successful() && ! isset($response['error'])) {
             return response()->json([
                 'success' => true,
                 'nombres' => $response['nombres'] ?? '',
-                'apellidos' => trim(($response['apellidoPaterno'] ?? '') . ' ' . ($response['apellidoMaterno'] ?? ''))
+                'apellidos' => trim(($response['apellidoPaterno'] ?? '').' '.($response['apellidoMaterno'] ?? '')),
             ]);
         }
 
         // Intento con otro endpoint en caso el primero falle
-        $response2 = \Illuminate\Support\Facades\Http::withoutVerifying()->get("https://dniruc.apisperu.com/api/v1/dni/{$dni}?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InZhbGxlc21hcnRpbjkwQGdtYWlsLmNvbSJ9...."); // Placeholder if they want to use one, but let's just return error for now.
-        
+        $response2 = Http::withoutVerifying()->get("https://dniruc.apisperu.com/api/v1/dni/{$dni}?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InZhbGxlc21hcnRpbjkwQGdtYWlsLmNvbSJ9...."); // Placeholder if they want to use one, but let's just return error for now.
+
         return response()->json(['success' => false, 'message' => 'No se encontró el DNI o la API está inactiva'], 404);
     }
 }

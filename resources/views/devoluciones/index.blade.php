@@ -21,11 +21,27 @@
         <div class="card-header-base">
             <form id="filtroDevoluciones" method="GET" action="{{ route('devoluciones.index') }}">
                 <div class="row g-3">
-                    <div class="col-lg-8 position-relative">
+                    <div class="col-lg-4 position-relative">
                         <i data-lucide="search" class="icon position-absolute text-slate-400" style="left: 1rem; top: 50%; transform: translateY(-50%);"></i>
-                        <input type="text" name="buscar" value="{{ request('buscar') }}" placeholder="Buscar por DNI, estudiante, código..." class="form-control-app ps-5" />
+                        <input type="text" name="buscar" value="{{ request('buscar') }}" placeholder="DNI, código, estudiante..." class="form-control-app ps-5" />
                     </div>
-                    <div class="col-lg-4">
+                    <div class="col-lg-3">
+                        <select name="estado" class="form-select-app">
+                            <option value="">Todos los estados</option>
+                            <option value="completada" @selected(request('estado') == 'completada')>Completada</option>
+                            <option value="parcial" @selected(request('estado') == 'parcial')>Parcial</option>
+                            <option value="anulada" @selected(request('estado') == 'anulada')>Anulada</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-3">
+                        <select name="anio_escolar" class="form-select-app">
+                            <option value="">Todos los años</option>
+                            @foreach($anioEscolarOptions as $id => $anio)
+                                <option value="{{ $id }}" @selected(request('anio_escolar') == $id)>Año {{ $anio }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-lg-2">
                         <button type="submit" class="btn-app btn-app-primary w-100">
                             <i data-lucide="filter" class="icon"></i> Filtrar
                         </button>
@@ -57,8 +73,17 @@
                             <td>{{ optional($devolucion->fecha_devolucion)->format('d/m/Y') }}</td>
                             <td>{{ $devolucion->usuarioRegistro->nombres ?? '—' }}</td>
                             <td class="text-end">
-                                <a href="{{ route('devoluciones.show', $devolucion) }}" class="btn-action btn-action-primary">
+                                <a href="{{ route('devoluciones.show', $devolucion) }}" class="btn-action btn-action-primary" title="Ver detalle">
                                     <i data-lucide="eye" class="icon"></i>
+                                </a>
+                                <a href="{{ route('devoluciones.edit', $devolucion) }}" class="btn-action btn-action-warning" title="Editar">
+                                    <i data-lucide="pencil" class="icon"></i>
+                                </a>
+                                <a href="{{ route('devoluciones.ver-constancia', $devolucion) }}" target="_blank" class="btn-action btn-action-success" title="Ver constancia">
+                                    <i data-lucide="file-text" class="icon"></i>
+                                </a>
+                                <a href="{{ route('devoluciones.constancia', $devolucion) }}" class="btn-action btn-action-secondary" title="Descargar PDF">
+                                    <i data-lucide="download" class="icon"></i>
                                 </a>
                             </td>
                         </tr>

@@ -2,152 +2,180 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Constancia de Devolución</title>
-    <style>
-        body { font-family: Arial, sans-serif; color: #1f2937; margin: 0; padding: 0; }
-        .page { padding: 32px; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-        .header img { max-width: 160px; height: auto; }
-        .header .institution { text-align: right; }
-        .institution h1 { margin: 0; font-size: 20px; letter-spacing: 0.05em; }
-        .institution p { margin: 4px 0 0; font-size: 12px; }
-        .title { text-align: center; margin: 24px 0; }
-        .title h2 { margin: 0; font-size: 24px; letter-spacing: 0.08em; }
-        .content { font-size: 13px; line-height: 1.6; }
-        .box { border: 1px solid #d1d5db; padding: 16px; margin: 16px 0; }
-        .box strong { display: block; margin-bottom: 6px; color: #111827; }
-        .details { width: 100%; border-collapse: collapse; margin-top: 8px; }
-        .details td { padding: 8px 4px; vertical-align: top; }
-        .details td.label { width: 170px; font-weight: bold; }
-        .table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .table th, .table td { border: 1px solid #d1d5db; padding: 10px; text-align: left; }
-        .table th { background: #f3f4f6; font-weight: bold; }
-        .signatures { display: flex; justify-content: space-between; margin-top: 36px; }
-        .signature { width: 48%; text-align: center; }
-        .signature .line { margin-top: 48px; border-top: 1px solid #111827; width: 100%; }
-        .footer { margin-top: 32px; font-size: 11px; color: #6b7280; text-align: center; }
-    </style>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Constancia de Devolución de Textos - {{ $devolucion->codigo_general }}</title>
+    @include('pdf.partials.estilos-constancia')
 </head>
 <body>
     <div class="page">
-        <div class="header">
-            <img src="{{ $logo }}" alt="Logo Institución">
-            <div class="institution">
-                <h1>Institución Educativa Glorioso</h1>
-                <p>Av. Ejemplo s/n, I.E.S. Glorioso</p>
-                <p>Teléfono: (01) 234-5678</p>
-            </div>
-        </div>
+        <div class="border-outer"></div>
+        <div class="border-inner"></div>
 
-        <div class="title">
-            <h2>CONSTANCIA DE DEVOLUCIÓN DE TEXTOS</h2>
-            <p>Número: <strong>{{ $constanciaCodigo }}</strong></p>
-        </div>
-
-        <div class="content">
-            <p>La presente constancia certifica que el/la estudiante y su representante devolvieron los textos escolares asignados en el registro correspondiente.</p>
-
-            <div class="box">
-                <strong>Datos del Estudiante</strong>
-                <table class="details">
-                    <tr>
-                        <td class="label">Nombre completo</td>
-                        <td>{{ $devolucion->estudiante->nombre_completo }}</td>
-                    </tr>
-                    <tr>
-                        <td class="label">Grado / Sección</td>
-                        <td>{{ $devolucion->estudiante->grado }} - {{ $devolucion->estudiante->seccion }}</td>
-                    </tr>
-                    <tr>
-                        <td class="label">Fecha de devolución</td>
-                        <td>{{ $devolucion->fecha_devolucion->format('d/m/Y') }}</td>
-                    </tr>
-                    <tr>
-                        <td class="label">Hora de devolución</td>
-                        <td>{{ $devolucion->hora_devolucion ? \Carbon\Carbon::parse($devolucion->hora_devolucion)->format('H:i') : '-' }}</td>
-                    </tr>
-                    <tr>
-                        <td class="label">Registrado por</td>
-                        <td>{{ $devolucion->usuarioRegistro->nombre }}</td>
-                    </tr>
-                </table>
+        <div class="content-wrapper">
+            {{-- Encabezado institucional --}}
+            <div class="header">
+                <div class="logo-area">
+                    <img src="{{ $logo }}" alt="Logo Institución">
+                </div>
+                <div class="institution">
+                    <p class="name">Institución Educativa Emblemática</p>
+                    <p class="subname">Glorioso Colegio Nacional San Carlos</p>
+                    <p class="meta">UGEL Puno / DRE Puno / MINEDU</p>
+                </div>
             </div>
 
-            <div class="box">
-                <strong>Resumen de Devolución</strong>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Campo</th>
-                            <th>Valor</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Código de devolución</td>
-                            <td>{{ $devolucion->codigo_general }}</td>
-                        </tr>
-                        <tr>
-                            <td>Total devueltos</td>
-                            <td>{{ $devolucion->total_devueltos ?? 0 }}</td>
-                        </tr>
-                        <tr>
-                            <td>Total faltantes</td>
-                            <td>{{ $devolucion->total_no_devueltos ?? 0 }}</td>
-                        </tr>
-                        <tr>
-                            <td>Total dañados</td>
-                            <td>{{ $devolucion->total_deficientes ?? 0 }}</td>
-                        </tr>
-                        <tr>
-                            <td>Total perdidos</td>
-                            <td>{{ $devolucion->total_perdidos ?? 0 }}</td>
-                        </tr>
-                    </tbody>
-                </table>
+            {{-- Título --}}
+            <div class="title-area">
+                <h1>Constancia de Devolución de Textos</h1>
+                <p class="codigo">Código de constancia: <strong>{{ $devolucion->codigo_general }}</strong></p>
             </div>
 
-            <div class="box">
-                <strong>Detalle de Textos Devolvidos</strong>
-                <table class="table">
-                    <thead>
+            {{-- Texto introductorio --}}
+            <p class="intro">
+                Conste por el presente documento que el/la estudiante
+                <strong class="uppercase">{{ $devolucion->estudiante->apellidos ?? '' }}, {{ $devolucion->estudiante->nombres ?? '' }}</strong>,
+                ha procedido a la devolución de los textos educativos del Banco de Libros correspondientes al año escolar
+                <strong>{{ $devolucion->anioEscolar->anio ?? '' }}</strong>.
+            </p>
+
+            {{-- Datos del estudiante --}}
+            <div class="data-box">
+                <p class="box-title">Datos del Estudiante</p>
+                <div class="box-body">
+                    <table class="data-table">
                         <tr>
-                            <th>#</th>
-                            <th>Título</th>
-                            <th>ISBN</th>
-                            <th>Estado</th>
+                            <td class="label">Código de estudiante:</td>
+                            <td class="value">{{ $devolucion->estudiante->codigo_estudiante ?? '—' }}</td>
+                            <td class="label">DNI:</td>
+                            <td class="value">{{ $devolucion->estudiante->dni ?? '—' }}</td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($devolucion->detalles as $index => $detalle)
+                        <tr>
+                            <td class="label">Apellidos y nombres:</td>
+                            <td class="value uppercase">{{ $devolucion->estudiante->apellidos ?? '' }}, {{ $devolucion->estudiante->nombres ?? '' }}</td>
+                            <td class="label">Año escolar:</td>
+                            <td class="value">{{ $devolucion->anioEscolar->anio ?? '—' }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Nivel:</td>
+                            <td class="value">{{ ucfirst($devolucion->estudiante->nivel ?? '—') }}</td>
+                            <td class="label">Grado:</td>
+                            <td class="value">{{ $devolucion->estudiante->grado ?? '—' }}°</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Sección:</td>
+                            <td class="value">{{ strtoupper($devolucion->estudiante->seccion ?? '—') }}</td>
+                            <td class="label">Fecha de devolución:</td>
+                            <td class="value">{{ optional($devolucion->fecha_devolucion)->format('d/m/Y') }} {{ $devolucion->hora_devolucion ? 'a las ' . \Carbon\Carbon::parse($devolucion->hora_devolucion)->format('H:i') : '' }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            {{-- Apoderado --}}
+            <div class="data-box">
+                <p class="box-title">Devolución realizada por</p>
+                <div class="box-body">
+                    <table class="data-table">
+                        <tr>
+                            <td class="label">Devuelto por:</td>
+                            <td class="value">
+                                @if($devolucion->tipo_firmante === 'apoderado' && $devolucion->padre)
+                                    <strong class="uppercase">{{ $devolucion->padre->nombre_completo }}</strong>
+                                    (DNI: {{ $devolucion->padre->dni ?? '—' }})
+                                @else
+                                    <strong>El propio estudiante</strong>
+                                @endif
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            {{-- Tabla de libros devueltos --}}
+            <div class="data-box">
+                <p class="box-title">Relación de Textos Devueltos</p>
+                <div class="box-body">
+                    <table class="items-table">
+                        <thead>
                             <tr>
-                                <td>{{ $index + 1 }}</td>
-                                <td>{{ $detalle->libro->titulo }}</td>
-                                <td>{{ $detalle->libro->isbn }}</td>
-                                <td>{{ ucfirst($detalle->estado_libro ?? 'devuelto') }}</td>
+                                <th style="width: 8%;" class="text-center">N°</th>
+                                <th style="width: 18%;">Código del libro</th>
+                                <th style="width: 38%;">Nombre del libro</th>
+                                <th style="width: 14%;" class="text-center">Estado</th>
+                                <th style="width: 22%;">Observaciones</th>
                             </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @forelse($devolucion->detalles as $index => $detalle)
+                                <tr>
+                                    <td class="text-center">{{ $index + 1 }}</td>
+                                    <td>{{ $detalle->libro->codigo_libro ?? '—' }}</td>
+                                    <td>{{ $detalle->libro->nombre ?? 'Libro no encontrado' }}</td>
+                                    <td class="text-center">{{ ucfirst(str_replace('_', ' ', $detalle->estado_libro ?? '—')) }}</td>
+                                    <td>{{ $detalle->observaciones ?? '—' }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">No se registraron libros en esta devolución.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
-            <p>Se extiende la presente constancia para los fines que correspondan.</p>
-        </div>
-
-        <div class="signatures">
-            <div class="signature">
-                <div class="line"></div>
-                <p>Firma del Padre/Madre/Apoderado</p>
+            {{-- Resumen numérico --}}
+            <div class="summary-box">
+                <div class="summary-item">
+                    <span class="number">{{ $devolucion->total_devueltos ?? 0 }}</span>
+                    <span class="label">Devueltos</span>
+                </div>
+                <div class="summary-item">
+                    <span class="number">{{ $devolucion->total_no_devueltos ?? 0 }}</span>
+                    <span class="label">No devueltos</span>
+                </div>
+                <div class="summary-item">
+                    <span class="number">{{ $devolucion->total_deficientes ?? 0 }}</span>
+                    <span class="label">Deteriorados</span>
+                </div>
+                <div class="summary-item">
+                    <span class="number">{{ $devolucion->total_perdidos ?? 0 }}</span>
+                    <span class="label">Perdidos</span>
+                </div>
             </div>
-            <div class="signature">
-                <div class="line"></div>
-                <p>Firma del Responsable de Devolución</p>
-            </div>
-        </div>
 
-        <div class="footer">
-            <p>Emitido el {{ $fechaEmision }}</p>
+            {{-- Nota legal --}}
+            <div class="legal-note">
+                OJO: Solo es válido para efecto de matrícula y recojo de libreta, más NO para traslado.
+            </div>
+
+            {{-- Firmas --}}
+            <div class="signatures">
+                <div class="signature">
+                    <div class="line"></div>
+                    <p class="name">Firma del estudiante / apoderado</p>
+                    <p class="role">DNI: {{ $devolucion->tipo_firmante === 'apoderado' ? ($devolucion->padre->dni ?? '—') : ($devolucion->estudiante->dni ?? '—') }}</p>
+                </div>
+                <div class="signature">
+                    <div class="line"></div>
+                    <p class="name">Firma del responsable de devolución</p>
+                    <p class="role">{{ $devolucion->usuarioRegistro->nombres ?? '—' }} {{ $devolucion->usuarioRegistro->apellidos ?? '' }}</p>
+                </div>
+            </div>
+
+            {{-- Sello --}}
+            <div style="text-align: center; margin-top: 4mm;">
+                <p style="font-size: 7.5pt; color: #555; margin: 0;">Espacio para sello institucional</p>
+            </div>
+
+            {{-- Pie de página --}}
+            <div class="footer">
+                <p class="mb-0">
+                    Emitido el <strong>{{ $fechaEmision }}</strong> |
+                    Constancia generada desde el Sistema de Banco de Libros |
+                    Puno – Perú
+                </p>
+            </div>
         </div>
     </div>
 </body>

@@ -10,15 +10,19 @@ use App\Models\Estudiante;
 use App\Models\InventarioMovimiento;
 use App\Models\Libro;
 use App\Models\PadreApoderado;
-use Barryvdh\DomPDF\Facade\Pdf;
+use App\Services\ConstanciaEntregaService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class EntregaController extends Controller
 {
+    public function __construct(private ConstanciaEntregaService $constanciaService) {}
+
     public function index(Request $request): View
     {
         $query = Entrega::with(['estudiante', 'anioEscolar', 'usuarioRegistro']);
@@ -46,6 +50,9 @@ class EntregaController extends Controller
         if ($request->filled('fecha_hasta')) {
             $query->where('fecha_entrega', '<=', $request->input('fecha_hasta'));
         }
+        if ($request->filled('anio_escolar')) {
+            $query->where('id_anio_escolar', $request->input('anio_escolar'));
+        }
 
         $summaryQuery = (clone $query);
         $totalEstudiantes = Estudiante::activos()->count();
@@ -59,6 +66,7 @@ class EntregaController extends Controller
         $entregasPorGrado = (clone $summaryQuery)->get()->groupBy(fn ($entrega) => $entrega->estudiante?->grado ? $entrega->estudiante->grado.'°' : 'Sin grado')->map->count();
         $gradoOptions = Estudiante::activos()->distinct('grado')->orderBy('grado')->pluck('grado');
         $seccionOptions = Estudiante::activos()->distinct('seccion')->orderBy('seccion')->pluck('seccion');
+        $anioEscolarOptions = AnioEscolar::orderByDesc('anio')->pluck('anio', 'id');
 
         $entregas = $query->orderByDesc('fecha_entrega')->orderByDesc('id')->paginate(20)->withQueryString();
 
@@ -72,7 +80,8 @@ class EntregaController extends Controller
             'avance',
             'entregasPorGrado',
             'gradoOptions',
-            'seccionOptions'
+            'seccionOptions',
+            'anioEscolarOptions'
         ));
     }
 
@@ -252,7 +261,7 @@ class EntregaController extends Controller
             if ($entregaExistente) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'El estudiante ya tiene una entrega registrada (' . $entregaExistente->codigo_general . ').',
+                    'message' => 'El estudiante ya tiene una entrega registrada ('.$entregaExistente->codigo_general.').',
                 ], 422);
             }
 
@@ -301,6 +310,7 @@ class EntregaController extends Controller
 
                 if (! $libro->tieneStock($cantidad)) {
                     DB::rollBack();
+
                     return response()->json([
                         'success' => false,
                         'message' => "Sin stock suficiente para: {$libro->nombre}",
@@ -345,7 +355,7 @@ class EntregaController extends Controller
                 'message' => "Entrega {$entrega->codigo_general} registrada ({$totalLibros} libros).",
                 'entrega' => $entrega,
             ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error de validación.',
@@ -353,26 +363,48 @@ class EntregaController extends Controller
             ], 422);
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json([
                 'success' => false,
-                'message' => 'Error al registrar entrega: ' . $e->getMessage(),
+                'message' => 'Error al registrar entrega: '.$e->getMessage(),
             ], 500);
         }
     }
 
-    public function constancia(Entrega $entrega)
+    public function edit(Entrega $entrega): View
     {
-        $entrega->load(['estudiante', 'padre', 'anioEscolar', 'usuarioRegistro', 'detalles.libro']);
+        $entrega->load(['estudiante', 'anioEscolar', 'detalles.libro']);
 
-        $logoPath = 'file://'.str_replace('\\', '/', public_path('glorioso.png'));
-        $pdf = Pdf::loadView('reportes.constancia-entrega', [
-            'entrega' => $entrega,
-            'logo' => $logoPath,
-            'fechaEmision' => now()->format('d/m/Y H:i'),
-            'constanciaCodigo' => $entrega->codigo_general,
-        ])->setPaper('a4', 'portrait');
+        return view('entregas.edit', compact('entrega'));
+    }
 
-        return $pdf->download("CONSTANCIA_ENTREGA_{$entrega->codigo_general}.pdf");
+    public function update(Request $request, Entrega $entrega): RedirectResponse
+    {
+        $request->validate([
+            'estado' => ['required', 'in:completada,anulada,pending'],
+            'observaciones' => ['nullable', 'string'],
+        ]);
+
+        $entrega->update($request->only('estado', 'observaciones'));
+
+        return redirect()->route('entregas.show', $entrega)
+            ->with('success', 'Entrega actualizada correctamente.');
+    }
+
+    /**
+     * Ver constancia de entrega en el navegador (stream).
+     */
+    public function verConstancia(Entrega $entrega): Response
+    {
+        return $this->constanciaService->stream($entrega);
+    }
+
+    /**
+     * Descargar constancia de entrega en PDF.
+     */
+    public function constancia(Entrega $entrega): Response
+    {
+        return $this->constanciaService->download($entrega);
     }
 
     /**

@@ -115,12 +115,12 @@
                                 <a href="{{ route('estudiantes.edit', $e) }}" class="btn-action btn-action-primary" title="Editar">
                                     <i data-lucide="pencil" class="icon"></i>
                                 </a>
-                                <form action="{{ route('estudiantes.destroy', $e) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Estás seguro de eliminar este estudiante?');">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="btn-action btn-action-danger" title="Eliminar">
-                                        <i data-lucide="trash-2" class="icon"></i>
-                                    </button>
-                                </form>
+                                <button type="button"
+                                        class="btn-action btn-action-danger"
+                                        title="Eliminar"
+                                        onclick="abrirModalEliminar({{ $e->id }}, '{{ $e->apellidos }}, {{ $e->nombres }}')">
+                                    <i data-lucide="trash-2" class="icon"></i>
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -147,6 +147,45 @@
         </div>
     @endif
 </div>
+
+{{-- Modal confirmación eliminar --}}
+@component('components.modal', ['id' => 'modalEliminarEstudiante', 'title' => 'Confirmar eliminación', 'size' => 'md'])
+    <p class="text-slate-700 mb-0">¿Está seguro de eliminar al estudiante <strong id="lblNombreEliminar" class="text-slate-900"></strong>?</p>
+    <p class="small text-slate-500 mt-2 mb-0">Esta acción no se puede deshacer si el estudiante no tiene registros vinculados.</p>
+    @slot('footer')
+        <form id="formEliminarEstudiante" method="POST" class="d-flex gap-2 w-100 justify-content-end">
+            @csrf
+            @method('DELETE')
+            <button type="button" onclick="closeModal('modalEliminarEstudiante')" class="btn-app btn-app-secondary">Cancelar</button>
+            <button type="submit" class="btn-app btn-app-danger">
+                <i data-lucide="trash-2" class="icon"></i> Sí, eliminar
+            </button>
+        </form>
+    @endslot
+@endcomponent
+
+{{-- Modal forzar eliminación (cuando hay FK constraints) --}}
+@component('components.modal', ['id' => 'modalForzarEliminar', 'title' => 'No se puede eliminar', 'size' => 'md'])
+    <div class="alert alert-warning d-flex align-items-start gap-2 small">
+        <i data-lucide="alert-triangle" class="icon flex-shrink-0 mt-1"></i>
+        <div>
+            <p class="fw-semibold mb-1">Este estudiante tiene registros vinculados</p>
+            <p class="mb-0" id="lblErrorForzar"></p>
+        </div>
+    </div>
+    <p class="small text-danger fw-semibold mt-2 mb-0">Si continúa, se eliminarán TODOS los registros relacionados de forma permanente.</p>
+    @slot('footer')
+        <form id="formForzarEliminar" method="POST" class="d-flex gap-2 w-100 justify-content-end">
+            @csrf
+            @method('DELETE')
+            <input type="hidden" name="force" value="1">
+            <button type="button" onclick="closeModal('modalForzarEliminar')" class="btn-app btn-app-secondary">Cancelar</button>
+            <button type="submit" class="btn-app btn-app-danger">
+                <i data-lucide="trash-2" class="icon"></i> Sí, eliminar todo
+            </button>
+        </form>
+    @endslot
+@endcomponent
 
 @component('components.modal', ['id' => 'modalNuevoEstudiante', 'title' => 'Nuevo Estudiante', 'size' => 'lg'])
     <form id="formNuevoEstudiante" data-action="{{ route('estudiantes.api.store') }}">
@@ -234,4 +273,22 @@
         </div>
     </form>
 @endcomponent
+
+@push('scripts')
+<script>
+    function abrirModalEliminar(id, nombre) {
+        document.getElementById('lblNombreEliminar').textContent = nombre;
+        document.getElementById('formEliminarEstudiante').action = `/estudiantes/${id}`;
+        openModal('modalEliminarEstudiante');
+    }
+
+    @if(session('error') && session('estudiante_para_forzar'))
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('lblErrorForzar').innerText = @json(str_replace("\n", "\n", session('error')));
+            document.getElementById('formForzarEliminar').action = `/estudiantes/{{ session('estudiante_para_forzar') }}`;
+            openModal('modalForzarEliminar');
+        });
+    @endif
+</script>
+@endpush
 @endsection

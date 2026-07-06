@@ -2,146 +2,159 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Constancia de Entrega</title>
-    <style>
-        body { font-family: Arial, sans-serif; color: #1f2937; margin: 0; padding: 0; }
-        .page { padding: 32px; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-        .header img { max-width: 160px; height: auto; }
-        .header .institution { text-align: right; }
-        .institution h1 { margin: 0; font-size: 20px; letter-spacing: 0.05em; }
-        .institution p { margin: 4px 0 0; font-size: 12px; }
-        .title { text-align: center; margin: 24px 0; }
-        .title h2 { margin: 0; font-size: 24px; letter-spacing: 0.08em; }
-        .content { font-size: 13px; line-height: 1.6; }
-        .box { border: 1px solid #d1d5db; padding: 16px; margin: 16px 0; }
-        .box strong { display: block; margin-bottom: 6px; color: #111827; }
-        .details { width: 100%; border-collapse: collapse; margin-top: 8px; }
-        .details td { padding: 8px 4px; vertical-align: top; }
-        .details td.label { width: 170px; font-weight: bold; }
-        .table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .table th, .table td { border: 1px solid #d1d5db; padding: 10px; text-align: left; }
-        .table th { background: #f3f4f6; font-weight: bold; }
-        .signatures { display: flex; justify-content: space-between; margin-top: 36px; }
-        .signature { width: 48%; text-align: center; }
-        .signature .line { margin-top: 48px; border-top: 1px solid #111827; width: 100%; }
-        .footer { margin-top: 32px; font-size: 11px; color: #6b7280; text-align: center; }
-    </style>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Constancia de Entrega de Textos - {{ $entrega->codigo_general }}</title>
+    @include('pdf.partials.estilos-constancia')
 </head>
 <body>
     <div class="page">
-        <div class="header">
-            <img src="{{ $logo }}" alt="Logo Institución">
-            <div class="institution">
-                <h1>Institución Educativa Glorioso</h1>
-                <p>Av. Ejemplo s/n, I.E.S. Glorioso</p>
-                <p>Teléfono: (01) 234-5678</p>
-            </div>
-        </div>
+        <div class="border-outer"></div>
+        <div class="border-inner"></div>
 
-        <div class="title">
-            <h2>CONSTANCIA DE ENTREGA DE TEXTOS</h2>
-            <p>Número: <strong>{{ $constanciaCodigo }}</strong></p>
-        </div>
-
-        <div class="content">
-            <p>La presente constancia certifica que el/la estudiante cuya información se detalla a continuación recibió los textos escolares asignados bajo el registro de entrega.</p>
-
-            <div class="box">
-                <strong>Datos del Estudiante</strong>
-                <table class="details">
-                    <tr>
-                        <td class="label">Nombre completo</td>
-                        <td>{{ $entrega->estudiante->nombre_completo }}</td>
-                    </tr>
-                    <tr>
-                        <td class="label">Grado / Sección</td>
-                        <td>{{ $entrega->estudiante->grado }} - {{ $entrega->estudiante->seccion }}</td>
-                    </tr>
-                    <tr>
-                        <td class="label">Fecha de entrega</td>
-                        <td>{{ $entrega->fecha_entrega->format('d/m/Y') }}</td>
-                    </tr>
-                    <tr>
-                        <td class="label">Hora de entrega</td>
-                        <td>{{ $entrega->hora_entrega ? \Carbon\Carbon::parse($entrega->hora_entrega)->format('H:i') : '-' }}</td>
-                    </tr>
-                    <tr>
-                        <td class="label">Registrado por</td>
-                        <td>{{ $entrega->usuarioRegistro->nombre }}</td>
-                    </tr>
-                </table>
+        <div class="content-wrapper">
+            {{-- Encabezado institucional --}}
+            <div class="header">
+                <div class="logo-area">
+                    <img src="{{ $logo }}" alt="Logo Institución">
+                </div>
+                <div class="institution">
+                    <p class="name">Institución Educativa Emblemática</p>
+                    <p class="subname">Glorioso Colegio Nacional San Carlos</p>
+                    <p class="meta">UGEL Puno / DRE Puno / MINEDU</p>
+                </div>
             </div>
 
-            <div class="box">
-                <strong>Resumen de Entrega</strong>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Campo</th>
-                            <th>Valor</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Código de entrega</td>
-                            <td>{{ $entrega->codigo_general }}</td>
-                        </tr>
-                        <tr>
-                            <td>Total libros entregados</td>
-                            <td>{{ $entrega->detalles->count() }}</td>
-                        </tr>
-                        <tr>
-                            <td>Total de libros faltantes</td>
-                            <td>{{ $entrega->total_faltantes ?? 0 }}</td>
-                        </tr>
-                        <tr>
-                            <td>Total de libros dañados</td>
-                            <td>{{ $entrega->total_defectuosos ?? 0 }}</td>
-                        </tr>
-                    </tbody>
-                </table>
+            {{-- Título --}}
+            <div class="title-area">
+                <h1>Constancia de Entrega de Textos</h1>
+                <p class="codigo">Código de constancia: <strong>{{ $entrega->codigo_general }}</strong></p>
             </div>
 
-            <div class="box">
-                <strong>Detalle de Textos Entregados</strong>
-                <table class="table">
-                    <thead>
+            {{-- Texto introductorio --}}
+            <p class="intro">
+                Conste por el presente documento que el/la estudiante
+                <strong class="uppercase">{{ $entrega->estudiante->apellidos ?? '' }}, {{ $entrega->estudiante->nombres ?? '' }}</strong>,
+                ha recibido los textos educativos del Banco de Libros correspondientes al año escolar
+                <strong>{{ $entrega->anioEscolar->anio ?? '' }}</strong>.
+            </p>
+
+            {{-- Datos del estudiante --}}
+            <div class="data-box">
+                <p class="box-title">Datos del Estudiante</p>
+                <div class="box-body">
+                    <table class="data-table">
                         <tr>
-                            <th>#</th>
-                            <th>Título</th>
-                            <th>ISBN</th>
+                            <td class="label">Código de estudiante:</td>
+                            <td class="value">{{ $entrega->estudiante->codigo_estudiante ?? '—' }}</td>
+                            <td class="label">DNI:</td>
+                            <td class="value">{{ $entrega->estudiante->dni ?? '—' }}</td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($entrega->detalles as $index => $detalle)
+                        <tr>
+                            <td class="label">Apellidos y nombres:</td>
+                            <td class="value uppercase">{{ $entrega->estudiante->apellidos ?? '' }}, {{ $entrega->estudiante->nombres ?? '' }}</td>
+                            <td class="label">Año escolar:</td>
+                            <td class="value">{{ $entrega->anioEscolar->anio ?? '—' }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Nivel:</td>
+                            <td class="value">{{ ucfirst($entrega->estudiante->nivel ?? '—') }}</td>
+                            <td class="label">Grado:</td>
+                            <td class="value">{{ $entrega->estudiante->grado ?? '—' }}°</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Sección:</td>
+                            <td class="value">{{ strtoupper($entrega->estudiante->seccion ?? '—') }}</td>
+                            <td class="label">Fecha de entrega:</td>
+                            <td class="value">{{ optional($entrega->fecha_entrega)->format('d/m/Y') }} {{ $entrega->hora_entrega ? 'a las ' . \Carbon\Carbon::parse($entrega->hora_entrega)->format('H:i') : '' }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            {{-- Apoderado --}}
+            <div class="data-box">
+                <p class="box-title">Recepción</p>
+                <div class="box-body">
+                    <table class="data-table">
+                        <tr>
+                            <td class="label">Recibido por:</td>
+                            <td class="value">
+                                @if($entrega->tipo_firmante === 'apoderado' && $entrega->padre)
+                                    <strong class="uppercase">{{ $entrega->padre->nombre_completo }}</strong>
+                                    (DNI: {{ $entrega->padre->dni ?? '—' }})
+                                @else
+                                    <strong>El propio estudiante</strong>
+                                @endif
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            {{-- Tabla de libros entregados --}}
+            <div class="data-box">
+                <p class="box-title">Relación de Textos Entregados</p>
+                <div class="box-body">
+                    <table class="items-table">
+                        <thead>
                             <tr>
-                                <td>{{ $index + 1 }}</td>
-                                <td>{{ $detalle->libro->titulo }}</td>
-                                <td>{{ $detalle->libro->isbn }}</td>
+                                <th style="width: 8%;" class="text-center">N°</th>
+                                <th style="width: 18%;">Código del libro</th>
+                                <th style="width: 44%;">Nombre del libro</th>
+                                <th style="width: 15%;" class="text-center">Estado</th>
+                                <th style="width: 15%;">Observaciones</th>
                             </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @forelse($entrega->detalles as $index => $detalle)
+                                <tr>
+                                    <td class="text-center">{{ $index + 1 }}</td>
+                                    <td>{{ $detalle->libro->codigo_libro ?? '—' }}</td>
+                                    <td>{{ $detalle->libro->nombre ?? 'Libro no encontrado' }}</td>
+                                    <td class="text-center">{{ ucfirst($detalle->estado_entrega ?? 'entregado') }}</td>
+                                    <td>{{ $detalle->observaciones ?? '—' }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">No se registraron libros en esta entrega.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
-            <p>Se extiende la presente constancia para los fines que correspondan.</p>
-        </div>
+            <p class="intro" style="font-size: 8.5pt; margin-top: 2mm;">
+                El estudiante y/o apoderado declara haber recibido los textos en el estado indicado y se compromete a devolverlos en las condiciones establecidas por la institución al finalizar el año escolar.
+            </p>
 
-        <div class="signatures">
-            <div class="signature">
-                <div class="line"></div>
-                <p>Firma del Padre/Madre/Apoderado</p>
+            {{-- Firmas --}}
+            <div class="signatures">
+                <div class="signature">
+                    <div class="line"></div>
+                    <p class="name">Firma del estudiante / apoderado</p>
+                    <p class="role">DNI: {{ $entrega->tipo_firmante === 'apoderado' ? ($entrega->padre->dni ?? '—') : ($entrega->estudiante->dni ?? '—') }}</p>
+                </div>
+                <div class="signature">
+                    <div class="line"></div>
+                    <p class="name">Firma del responsable de entrega</p>
+                    <p class="role">{{ $entrega->usuarioRegistro->nombres ?? '—' }} {{ $entrega->usuarioRegistro->apellidos ?? '' }}</p>
+                </div>
             </div>
-            <div class="signature">
-                <div class="line"></div>
-                <p>Firma del Responsable de Entrega</p>
-            </div>
-        </div>
 
-        <div class="footer">
-            <p>Emitido el {{ $fechaEmision }}</p>
+            {{-- Sello --}}
+            <div style="text-align: center; margin-top: 4mm;">
+                <p style="font-size: 7.5pt; color: #555; margin: 0;">Espacio para sello institucional</p>
+            </div>
+
+            {{-- Pie de página --}}
+            <div class="footer">
+                <p class="mb-0">
+                    Emitido el <strong>{{ $fechaEmision }}</strong> |
+                    Constancia generada desde el Sistema de Banco de Libros |
+                    Puno – Perú
+                </p>
+            </div>
         </div>
     </div>
 </body>

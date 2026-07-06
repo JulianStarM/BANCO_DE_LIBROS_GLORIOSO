@@ -81,10 +81,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         </td>
                         <td class="fw-medium text-slate-800">${d.libro.nombre}</td>
                         <td class="text-center">
-                            <select name="detalles[${i}][entregas]" class="form-select-app mx-auto" style="max-width: 150px;">
+                            <select name="detalles[${i}][estado_libro]" class="form-select-app mx-auto" style="max-width: 160px;">
                                 <option value="bueno" selected>Bueno</option>
-                                <option value="regular">Regular</option>
-                                <option value="malo">Malo</option>
+                                <option value="deteriorado">Deteriorado</option>
+                                <option value="deficiente">Deficiente</option>
+                                <option value="no_devuelto">No devuelto</option>
                                 <option value="perdido">Perdido</option>
                             </select>
                         </td>

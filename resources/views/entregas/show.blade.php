@@ -17,19 +17,25 @@
         </div>
 
         <div class="d-flex gap-2 flex-wrap">
-            <a href="{{ route('entregas.constancia', $entrega) }}"
-                class="btn-app btn-app-success">
+            <a href="{{ route('entregas.ver-constancia', $entrega) }}"
+               target="_blank"
+               class="btn-app btn-app-success">
                 <i data-lucide="file-text" class="icon"></i>
-                Generar Constancia de Entrega
+                Ver Constancia
+            </a>
+            <a href="{{ route('entregas.constancia', $entrega) }}"
+               class="btn-app btn-app-secondary">
+                <i data-lucide="download" class="icon"></i>
+                Descargar PDF
             </a>
             <button type="button"
-                class="btn-app btn-app-secondary"
-                onclick="window.print()">
+                    class="btn-app btn-app-secondary"
+                    onclick="window.print()">
                 <i data-lucide="printer" class="icon"></i>
-                Imprimir página
+                Imprimir
             </button>
             <a href="{{ route('entregas.index') }}"
-                class="btn-app btn-app-primary">
+               class="btn-app btn-app-primary">
                 <i data-lucide="list" class="icon"></i>
                 Volver a Entregas
             </a>

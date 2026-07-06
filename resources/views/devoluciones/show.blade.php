@@ -18,13 +18,25 @@
             </p>
         </div>
         <div class="d-flex gap-2 flex-wrap">
-            <a href="{{ route('devoluciones.constancia', $devolucion) }}"
-               class="btn-app btn-app-danger">
+            <a href="{{ route('devoluciones.ver-constancia', $devolucion) }}"
+               target="_blank"
+               class="btn-app btn-app-success">
                 <i data-lucide="file-text" class="icon"></i>
-                Generar Constancia de Devolución
+                Ver Constancia
             </a>
-            <a href="{{ route('entregas.show', $devolucion->entrega) }}"
+            <a href="{{ route('devoluciones.constancia', $devolucion) }}"
                class="btn-app btn-app-secondary">
+                <i data-lucide="download" class="icon"></i>
+                Descargar PDF
+            </a>
+            <button type="button"
+                    class="btn-app btn-app-secondary"
+                    onclick="window.print()">
+                <i data-lucide="printer" class="icon"></i>
+                Imprimir
+            </button>
+            <a href="{{ route('entregas.show', $devolucion->entrega) }}"
+               class="btn-app btn-app-primary">
                 <i data-lucide="arrow-left" class="icon"></i>
                 Ver Entrega Original
             </a>
