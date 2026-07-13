@@ -54,15 +54,25 @@ class EstudianteController extends Controller
 
     public function store(Request $request)
     {
-        $data = $this->validateData($request);
-        $data['id_institucion'] = 1; // Valor por defecto
-        $data['estado'] = $request->has('estado') ? 'activo' : 'retirado';
+        try {
+            $data = $this->validateData($request);
+            $data['id_institucion'] = 1; // Valor por defecto
+            $data['estado'] = $request->has('estado') ? 'activo' : 'retirado';
 
-        Estudiante::create($data);
+            Estudiante::create($data);
 
-        return redirect()
-            ->route('estudiantes.index')
-            ->with('success', 'Estudiante registrado correctamente.');
+            return redirect()
+                ->route('estudiantes.index')
+                ->with('success', config('messages.estudiantes.store.success'));
+        } catch (QueryException $e) {
+            return redirect()
+                ->route('estudiantes.index')
+                ->with('error', config('messages.estudiantes.store.error'));
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('estudiantes.index')
+                ->with('error', config('messages.estudiantes.store.error'));
+        }
     }
 
     public function show(Estudiante $estudiante)
@@ -77,14 +87,24 @@ class EstudianteController extends Controller
 
     public function update(Request $request, Estudiante $estudiante)
     {
-        $data = $this->validateData($request, $estudiante->id);
-        $data['estado'] = $request->has('estado') ? 'activo' : 'retirado';
+        try {
+            $data = $this->validateData($request, $estudiante->id);
+            $data['estado'] = $request->has('estado') ? 'activo' : 'retirado';
 
-        $estudiante->update($data);
+            $estudiante->update($data);
 
-        return redirect()
-            ->route('estudiantes.index')
-            ->with('success', 'Estudiante actualizado correctamente.');
+            return redirect()
+                ->route('estudiantes.index')
+                ->with('success', config('messages.estudiantes.update.success'));
+        } catch (QueryException $e) {
+            return redirect()
+                ->route('estudiantes.index')
+                ->with('error', config('messages.estudiantes.update.error'));
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('estudiantes.index')
+                ->with('error', config('messages.estudiantes.update.error'));
+        }
     }
 
     public function destroy(Request $request, Estudiante $estudiante)
@@ -99,13 +119,13 @@ class EstudianteController extends Controller
 
                 return redirect()
                     ->route('estudiantes.index')
-                    ->with('success', 'Estudiante y todos sus registros relacionados eliminados correctamente.');
+                    ->with('success', config('messages.estudiantes.force_destroy.success'));
             } catch (\Exception $e) {
                 DB::rollBack();
 
                 return redirect()
                     ->route('estudiantes.index')
-                    ->with('error', 'Error al eliminar en cascada: '.$e->getMessage());
+                    ->with('error', config('messages.estudiantes.force_destroy.error'));
             }
         }
 
@@ -114,17 +134,17 @@ class EstudianteController extends Controller
 
             return redirect()
                 ->route('estudiantes.index')
-                ->with('success', 'Estudiante eliminado correctamente.');
+                ->with('success', config('messages.estudiantes.destroy.success'));
         } catch (QueryException $e) {
             if (str_contains($e->getMessage(), 'foreign key constraint')) {
                 $relaciones = $this->contarRelaciones($estudiante);
-                $mensaje = 'No se puede eliminar este estudiante porque tiene registros vinculados:';
+                $mensaje = config('messages.estudiantes.destroy.error')."\n\nRegistros vinculados:";
                 foreach ($relaciones as $nombre => $cantidad) {
                     if ($cantidad > 0) {
                         $mensaje .= "\n• {$nombre}: {$cantidad}";
                     }
                 }
-                $mensaje .= "\n\nSi elimina al estudiante, también se borrarán TODOS estos registros de forma permanente.";
+                $mensaje .= "\n\n".config('messages.estudiantes.force_destroy.warning');
 
                 return redirect()
                     ->route('estudiantes.index')
@@ -190,23 +210,43 @@ class EstudianteController extends Controller
             $data['id_institucion'] = 1;
             $data['estado'] = $request->has('estado') ? 'activo' : 'retirado';
 
+            // Default turno si viene vacío
+            if (empty($data['turno'])) {
+                $data['turno'] = 'mañana';
+            }
+
             $estudiante = Estudiante::create($data);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Estudiante registrado correctamente.',
+                'message' => config('messages.estudiantes.store.success'),
                 'estudiante' => $estudiante,
             ]);
         } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error de validación.',
+                'message' => config('messages.sistema.validation.error'),
                 'errors' => $e->errors(),
             ], 422);
+        } catch (QueryException $e) {
+            $message = $e->getMessage();
+
+            if (str_contains($message, 'Duplicate entry')) {
+                $cleanMessage = config('messages.estudiantes.store.error');
+            } elseif (str_contains($message, 'Data truncated') || str_contains($message, 'Incorrect')) {
+                $cleanMessage = config('messages.sistema.validation.error');
+            } else {
+                $cleanMessage = config('messages.sistema.generic_error');
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => $cleanMessage,
+            ], 500);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error al registrar: '.$e->getMessage(),
+                'message' => config('messages.sistema.generic_error'),
             ], 500);
         }
     }
@@ -239,7 +279,7 @@ class EstudianteController extends Controller
     {
         return $request->validate([
             'codigo_estudiante' => [
-                'required',
+                'nullable',
                 'string',
                 'max:20',
                 Rule::unique('estudiantes', 'codigo_estudiante')->ignore($id),
@@ -256,8 +296,6 @@ class EstudianteController extends Controller
             'apellidos' => ['required', 'string', 'max:100'],
 
             'sexo' => ['required', 'in:M,F'],
-
-            'fecha_nacimiento' => ['nullable', 'date'],
 
             // TU BD: tinyint
             'grado' => ['required', 'integer'],

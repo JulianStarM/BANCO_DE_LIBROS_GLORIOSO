@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -19,7 +20,6 @@ class Estudiante extends Model
         'nombres',
         'apellidos',
         'sexo',
-        'fecha_nacimiento',
         'grado',
         'seccion',
         'turno',
@@ -38,7 +38,6 @@ class Estudiante extends Model
     protected function casts(): array
     {
         return [
-            'fecha_nacimiento' => 'date',
             'grado' => 'integer',
         ];
     }
@@ -91,8 +90,8 @@ class Estudiante extends Model
     /**
      * Scope: Filtrar por grado.
      *
-     * @param \Illuminate\Database\Eloquent\Builder<self> $query
-     * @return \Illuminate\Database\Eloquent\Builder<self>
+     * @param  Builder<self>  $query
+     * @return Builder<self>
      */
     public function scopeDeGrado($query, int $grado)
     {
@@ -102,8 +101,8 @@ class Estudiante extends Model
     /**
      * Scope: Filtrar por sección.
      *
-     * @param \Illuminate\Database\Eloquent\Builder<self> $query
-     * @return \Illuminate\Database\Eloquent\Builder<self>
+     * @param  Builder<self>  $query
+     * @return Builder<self>
      */
     public function scopeDeSeccion($query, string $seccion)
     {
@@ -113,8 +112,8 @@ class Estudiante extends Model
     /**
      * Scope: Solo estudiantes activos.
      *
-     * @param \Illuminate\Database\Eloquent\Builder<self> $query
-     * @return \Illuminate\Database\Eloquent\Builder<self>
+     * @param  Builder<self>  $query
+     * @return Builder<self>
      */
     public function scopeActivos($query)
     {
@@ -124,8 +123,8 @@ class Estudiante extends Model
     /**
      * Scope: Filtrar por año escolar.
      *
-     * @param \Illuminate\Database\Eloquent\Builder<self> $query
-     * @return \Illuminate\Database\Eloquent\Builder<self>
+     * @param  Builder<self>  $query
+     * @return Builder<self>
      */
     public function scopeDelAnio($query, int $idAnioEscolar)
     {

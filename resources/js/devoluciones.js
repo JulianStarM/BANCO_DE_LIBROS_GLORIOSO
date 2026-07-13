@@ -126,7 +126,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (mBtnGuardar) {
         mBtnGuardar.addEventListener('click', () => {
             if (window.submitModalForm) {
-                window.submitModalForm('formNuevaDevolucion', actionUrl, 'modalNuevaDevolucion', () => {
+                window.submitModalForm('formNuevaDevolucion', actionUrl, 'modalNuevaDevolucion', (data) => {
+                    localStorage.setItem('app_toast', JSON.stringify({message: data.message, type: 'success'}));
                     setTimeout(() => location.reload(), 800);
                 });
             }

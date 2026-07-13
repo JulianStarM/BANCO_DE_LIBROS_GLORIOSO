@@ -150,7 +150,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Submit entrega
     mBtnGuardar?.addEventListener('click', () => {
         if (window.submitModalForm) {
-            window.submitModalForm('formNuevaEntrega', actionUrl, 'modalNuevaEntrega', () => {
+            window.submitModalForm('formNuevaEntrega', actionUrl, 'modalNuevaEntrega', (data) => {
+                localStorage.setItem('app_toast', JSON.stringify({message: data.message, type: 'success'}));
                 setTimeout(() => location.reload(), 800);
             });
         }

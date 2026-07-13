@@ -108,6 +108,14 @@ window.submitModalForm = async function (formId, url, modalId, onSuccess) {
             body: formData,
         });
 
+        const contentType = response.headers.get('content-type') || '';
+        if (! contentType.includes('application/json')) {
+            const text = await response.text();
+            console.error('[submitModalForm] Respuesta no JSON:', text.substring(0, 500));
+            window.showToast('Error del servidor. Verifique la consola para más detalles.', 'error');
+            return;
+        }
+
         const data = await response.json();
 
         if (data.success) {
@@ -138,6 +146,7 @@ window.submitModalForm = async function (formId, url, modalId, onSuccess) {
             window.showToast(data.message || 'Error al procesar.', 'error');
         }
     } catch (err) {
+        console.error('[submitModalForm] Error:', err);
         window.showToast('Error de conexión. Inténtalo de nuevo.', 'error');
     } finally {
         if (submitBtn) {

@@ -109,12 +109,50 @@
                         </td>
                         <td class="actions-cell">
                             <div class="d-flex justify-content-end gap-2">
-                                <a href="{{ route('estudiantes.show', $e) }}" class="btn-action btn-action-primary" title="Ver perfil">
+                                <button type="button"
+                                        class="btn-action btn-action-primary"
+                                        title="Ver perfil"
+                                        onclick="verEstudiante({{ json_encode([
+                                            'id' => $e->id,
+                                            'codigo_estudiante' => $e->codigo_estudiante,
+                                            'dni' => $e->dni,
+                                            'nombres' => $e->nombres,
+                                            'apellidos' => $e->apellidos,
+                                            'sexo' => $e->sexo,
+                                            'fecha_nacimiento' => $e->fecha_nacimiento,
+                                            'grado' => $e->grado,
+                                            'seccion' => $e->seccion,
+                                            'nivel' => $e->nivel,
+                                            'turno' => $e->turno,
+                                            'direccion' => $e->direccion,
+                                            'telefono' => $e->telefono,
+                                            'estado' => $e->estado,
+                                            'id_anio_escolar' => $e->id_anio_escolar,
+                                        ]) }})">
                                     <i data-lucide="eye" class="icon"></i>
-                                </a>
-                                <a href="{{ route('estudiantes.edit', $e) }}" class="btn-action btn-action-primary" title="Editar">
+                                </button>
+                                <button type="button"
+                                        class="btn-action btn-action-warning"
+                                        title="Editar"
+                                        onclick="editarEstudiante({{ json_encode([
+                                            'id' => $e->id,
+                                            'codigo_estudiante' => $e->codigo_estudiante,
+                                            'dni' => $e->dni,
+                                            'nombres' => $e->nombres,
+                                            'apellidos' => $e->apellidos,
+                                            'sexo' => $e->sexo,
+                                            'fecha_nacimiento' => $e->fecha_nacimiento,
+                                            'grado' => $e->grado,
+                                            'seccion' => $e->seccion,
+                                            'nivel' => $e->nivel,
+                                            'turno' => $e->turno,
+                                            'direccion' => $e->direccion,
+                                            'telefono' => $e->telefono,
+                                            'estado' => $e->estado,
+                                            'id_anio_escolar' => $e->id_anio_escolar,
+                                        ]) }})">
                                     <i data-lucide="pencil" class="icon"></i>
-                                </a>
+                                </button>
                                 <button type="button"
                                         class="btn-action btn-action-danger"
                                         title="Eliminar"
@@ -147,6 +185,146 @@
         </div>
     @endif
 </div>
+
+{{-- Modal Ver Estudiante --}}
+@component('components.modal', ['id' => 'modalVerEstudiante', 'title' => 'Perfil del Estudiante', 'size' => 'md'])
+    <div class="row g-3">
+        <div class="col-md-6">
+            <p class="small text-slate-500 mb-0">Código</p>
+            <p class="fw-semibold text-slate-800 mb-0" id="verCodigo">—</p>
+        </div>
+        <div class="col-md-6">
+            <p class="small text-slate-500 mb-0">DNI</p>
+            <p class="fw-semibold text-slate-800 mb-0" id="verDni">—</p>
+        </div>
+        <div class="col-md-6">
+            <p class="small text-slate-500 mb-0">Apellidos</p>
+            <p class="fw-semibold text-slate-800 mb-0" id="verApellidos">—</p>
+        </div>
+        <div class="col-md-6">
+            <p class="small text-slate-500 mb-0">Nombres</p>
+            <p class="fw-semibold text-slate-800 mb-0" id="verNombres">—</p>
+        </div>
+        <div class="col-md-4">
+            <p class="small text-slate-500 mb-0">Sexo</p>
+            <p class="fw-semibold text-slate-800 mb-0" id="verSexo">—</p>
+        </div>
+        <div class="col-md-4">
+            <p class="small text-slate-500 mb-0">Estado</p>
+            <p class="fw-semibold text-slate-800 mb-0" id="verEstado">—</p>
+        </div>
+        <div class="col-md-4">
+            <p class="small text-slate-500 mb-0">Nivel</p>
+            <p class="fw-semibold text-slate-800 mb-0 text-capitalize" id="verNivel">—</p>
+        </div>
+        <div class="col-md-3">
+            <p class="small text-slate-500 mb-0">Grado</p>
+            <p class="fw-semibold text-slate-800 mb-0" id="verGrado">—</p>
+        </div>
+        <div class="col-md-3">
+            <p class="small text-slate-500 mb-0">Sección</p>
+            <p class="fw-semibold text-slate-800 mb-0" id="verSeccion">—</p>
+        </div>
+        <div class="col-md-3">
+            <p class="small text-slate-500 mb-0">Turno</p>
+            <p class="fw-semibold text-slate-800 mb-0 text-capitalize" id="verTurno">—</p>
+        </div>
+        <div class="col-md-6">
+            <p class="small text-slate-500 mb-0">Dirección</p>
+            <p class="fw-semibold text-slate-800 mb-0" id="verDireccion">—</p>
+        </div>
+        <div class="col-md-6">
+            <p class="small text-slate-500 mb-0">Teléfono</p>
+            <p class="fw-semibold text-slate-800 mb-0" id="verTelefono">—</p>
+        </div>
+    </div>
+@endcomponent
+
+{{-- Modal Editar Estudiante --}}
+@component('components.modal', ['id' => 'modalEditarEstudiante', 'title' => 'Editar Estudiante', 'size' => 'lg'])
+    <form id="formEditarEstudiante" method="POST">
+        @csrf
+        @method('PUT')
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label-app">Código</label>
+                <input type="text" name="codigo_estudiante" id="editCodigoEstudiante" class="form-control-app">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label-app">DNI *</label>
+                <input type="text" name="dni" id="editDni" class="form-control-app" required maxlength="15">
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label-app">Nombres *</label>
+                <input type="text" name="nombres" id="editNombres" class="form-control-app" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label-app">Apellidos *</label>
+                <input type="text" name="apellidos" id="editApellidos" class="form-control-app" required>
+            </div>
+
+            <div class="col-6 col-md-2">
+                <label class="form-label-app">Sexo *</label>
+                <select name="sexo" id="editSexo" class="form-select-app" required>
+                    <option value="M">Masculino</option>
+                    <option value="F">Femenino</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label-app">Nivel *</label>
+                <select name="nivel" id="editNivel" class="form-select-app" required>
+                    <option value="secundaria">Secundaria</option>
+                    <option value="primaria">Primaria</option>
+                    <option value="inicial">Inicial</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label-app">Grado *</label>
+                <input type="number" name="grado" id="editGrado" class="form-control-app" required min="1" max="6">
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label-app">Sección *</label>
+                <input type="text" name="seccion" id="editSeccion" class="form-control-app" required maxlength="5">
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label-app">Turno</label>
+                <select name="turno" id="editTurno" class="form-select-app">
+                    <option value="">--</option>
+                    <option value="mañana">Mañana</option>
+                    <option value="tarde">Tarde</option>
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label-app">Dirección</label>
+                <input type="text" name="direccion" id="editDireccion" class="form-control-app">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label-app">Teléfono</label>
+                <input type="text" name="telefono" id="editTelefono" class="form-control-app">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label-app">Año Escolar (ID)</label>
+                <input type="number" name="id_anio_escolar" id="editIdAnioEscolar" class="form-control-app">
+            </div>
+
+            <div class="col-12">
+                <label class="form-check-app">
+                    <input type="checkbox" name="estado" id="editEstado" value="1" class="form-check-input-app">
+                    <span class="form-check-label-app">Estudiante activo</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 pt-3 border-top mt-3">
+            <button type="button" onclick="closeModal('modalEditarEstudiante')" class="btn-app btn-app-secondary">Cancelar</button>
+            <button type="submit" class="btn-app btn-app-primary">
+                <i data-lucide="save" class="icon"></i> Guardar cambios
+            </button>
+        </div>
+    </form>
+@endcomponent
 
 {{-- Modal confirmación eliminar --}}
 @component('components.modal', ['id' => 'modalEliminarEstudiante', 'title' => 'Confirmar eliminación', 'size' => 'md'])
@@ -190,17 +368,13 @@
 @component('components.modal', ['id' => 'modalNuevoEstudiante', 'title' => 'Nuevo Estudiante', 'size' => 'lg'])
     <form id="formNuevoEstudiante" data-action="{{ route('estudiantes.api.store') }}">
         <div class="row g-3">
-            <div class="col-md-4">
-                <label class="form-label-app">Código *</label>
-                <input type="text" name="codigo_estudiante" class="form-control-app" required>
+            <div class="col-md-6">
+                <label class="form-label-app">Código</label>
+                <input type="text" name="codigo_estudiante" class="form-control-app">
             </div>
-            <div class="col-md-4">
+            <div class="col-md-6">
                 <label class="form-label-app">DNI *</label>
                 <input type="text" name="dni" class="form-control-app" required maxlength="15">
-            </div>
-            <div class="col-md-4">
-                <label class="form-label-app">Fecha nacimiento</label>
-                <input type="date" name="fecha_nacimiento" class="form-control-app">
             </div>
 
             <div class="col-md-6">
@@ -267,7 +441,7 @@
 
         <div class="d-flex justify-content-end gap-2 pt-3 border-top mt-3">
             <button type="button" onclick="closeModal('modalNuevoEstudiante')" class="btn-app btn-app-secondary">Cancelar</button>
-            <button type="button" id="btnGuardarEstudiante" class="btn-app btn-app-primary btn-submit-modal">
+            <button type="button" id="btnGuardarEstudiante" onclick="guardarEstudianteInline()" class="btn-app btn-app-primary btn-submit-modal">
                 <i data-lucide="save" class="icon"></i> Guardar Estudiante
             </button>
         </div>
@@ -276,6 +450,40 @@
 
 @push('scripts')
 <script>
+    function verEstudiante(est) {
+        document.getElementById('verCodigo').textContent = est.codigo_estudiante ?? '—';
+        document.getElementById('verDni').textContent = est.dni ?? '—';
+        document.getElementById('verApellidos').textContent = est.apellidos ?? '—';
+        document.getElementById('verNombres').textContent = est.nombres ?? '—';
+        document.getElementById('verSexo').textContent = est.sexo === 'M' ? 'Masculino' : (est.sexo === 'F' ? 'Femenino' : '—');
+        document.getElementById('verEstado').textContent = (est.estado === 'activo' || est.estado == 1) ? 'Activo' : (est.estado ? est.estado.charAt(0).toUpperCase() + est.estado.slice(1) : 'Inactivo');
+        document.getElementById('verNivel').textContent = est.nivel ?? '—';
+        document.getElementById('verGrado').textContent = est.grado ?? '—';
+        document.getElementById('verSeccion').textContent = est.seccion ?? '—';
+        document.getElementById('verTurno').textContent = est.turno ?? '—';
+        document.getElementById('verDireccion').textContent = est.direccion ?? '—';
+        document.getElementById('verTelefono').textContent = est.telefono ?? '—';
+        openModal('modalVerEstudiante');
+    }
+
+    function editarEstudiante(est) {
+        document.getElementById('formEditarEstudiante').action = `/estudiantes/${est.id}`;
+        document.getElementById('editCodigoEstudiante').value = est.codigo_estudiante ?? '';
+        document.getElementById('editDni').value = est.dni ?? '';
+        document.getElementById('editNombres').value = est.nombres ?? '';
+        document.getElementById('editApellidos').value = est.apellidos ?? '';
+        document.getElementById('editSexo').value = est.sexo ?? 'M';
+        document.getElementById('editGrado').value = est.grado ?? '';
+        document.getElementById('editSeccion').value = est.seccion ?? '';
+        document.getElementById('editNivel').value = est.nivel ?? 'secundaria';
+        document.getElementById('editTurno').value = est.turno ?? '';
+        document.getElementById('editDireccion').value = est.direccion ?? '';
+        document.getElementById('editTelefono').value = est.telefono ?? '';
+        document.getElementById('editIdAnioEscolar').value = est.id_anio_escolar ?? '1';
+        document.getElementById('editEstado').checked = (est.estado === 'activo' || est.estado == 1);
+        openModal('modalEditarEstudiante');
+    }
+
     function abrirModalEliminar(id, nombre) {
         document.getElementById('lblNombreEliminar').textContent = nombre;
         document.getElementById('formEliminarEstudiante').action = `/estudiantes/${id}`;
@@ -289,6 +497,99 @@
             openModal('modalForzarEliminar');
         });
     @endif
+
+    function guardarEstudianteInline() {
+        console.log('[DEBUG] === INICIO guardarEstudianteInline ===');
+        try {
+            const form = document.getElementById('formNuevoEstudiante');
+            const btn = document.getElementById('btnGuardarEstudiante');
+            const url = form?.getAttribute('data-action');
+
+            console.log('[DEBUG] form:', form);
+            console.log('[DEBUG] url:', url);
+            console.log('[DEBUG] submitModalForm exists:', typeof window.submitModalForm);
+
+            if (!form || !url) {
+                window.showToast && window.showToast('Error: no se encontró el formulario o la URL.', 'error');
+                console.error('[DEBUG] Form o URL faltante');
+                return;
+            }
+
+            const formData = new FormData(form);
+            const originalHtml = btn.innerHTML;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-2" class="icon spin"></i> Guardando...';
+            window.initLucide && window.initLucide();
+
+            form.querySelectorAll('.field-error').forEach(e => e.remove());
+            form.querySelectorAll('.is-invalid').forEach(e => e.classList.remove('is-invalid'));
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+            console.log('[DEBUG] CSRF token:', csrfToken ? 'OK' : 'VACIO');
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                },
+                body: formData,
+            })
+            .then(r => {
+                console.log('[DEBUG] response status:', r.status);
+                return r.text().then(text => {
+                    console.log('[DEBUG] raw response:', text.substring(0, 500));
+                    try { return JSON.parse(text); }
+                    catch(e) { throw new Error('Respuesta no es JSON: ' + text.substring(0,200)); }
+                });
+            })
+            .then(data => {
+                console.log('[DEBUG] parsed data:', data);
+                if (data.success) {
+                    window.showToast && window.showToast(data.message, 'success');
+                    window.closeModal && window.closeModal('modalNuevoEstudiante');
+                    form.reset();
+                    // Persistir toast para que se muestre después del reload
+                    localStorage.setItem('app_toast', JSON.stringify({message: data.message, type: 'success'}));
+                    setTimeout(() => location.reload(), 800);
+                } else {
+                    if (data.errors) {
+                        Object.entries(data.errors).forEach(([field, messages]) => {
+                            let input = form.querySelector(`[name="${field}"]`);
+                            if (input) {
+                                input.classList.add('is-invalid');
+                                const err = document.createElement('p');
+                                err.className = 'field-error form-error-app';
+                                err.textContent = messages[0];
+                                input.parentElement.appendChild(err);
+                            }
+                        });
+                    }
+                    window.showToast && window.showToast(data.message || 'Error al procesar.', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    window.initLucide && window.initLucide();
+                }
+            })
+            .catch(err => {
+                console.error('[DEBUG] fetch/parsing error:', err);
+                window.showToast && window.showToast('Error: ' + (err.message || 'de conexión'), 'error');
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                window.initLucide && window.initLucide();
+            });
+        } catch (e) {
+            console.error('[DEBUG] Excepción síncrona:', e);
+            const btn = document.getElementById('btnGuardarEstudiante');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="save" class="icon"></i> Guardar Estudiante';
+                window.initLucide && window.initLucide();
+            }
+            window.showToast && window.showToast('Error inesperado: ' + e.message, 'error');
+        }
+    }
 </script>
 @endpush
 @endsection

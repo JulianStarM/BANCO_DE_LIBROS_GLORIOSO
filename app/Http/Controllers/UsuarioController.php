@@ -17,7 +17,7 @@ class UsuarioController extends Controller
             ->when($q !== '', function ($query) use ($q) {
                 $query->where(function ($w) use ($q) {
                     $w->where('nombre', 'like', "%{$q}%")
-                      ->orWhere('email', 'like', "%{$q}%");
+                        ->orWhere('email', 'like', "%{$q}%");
                 });
             })
             ->orderBy('nombre')
@@ -29,22 +29,29 @@ class UsuarioController extends Controller
 
     public function create()
     {
-        $usuario = new Usuario();
+        $usuario = new Usuario;
+
         return view('usuarios.form', compact('usuario'));
     }
 
     public function store(Request $request)
     {
-        $data = $this->validateData($request);
+        try {
+            $data = $this->validateData($request);
 
-        $data['password'] = Hash::make($data['password']);
-        $data['estado'] = $request->boolean('estado', true);
+            $data['password'] = Hash::make($data['password']);
+            $data['estado'] = $request->boolean('estado', true);
 
-        Usuario::create($data);
+            $usuario = Usuario::create($data);
 
-        return redirect()
-            ->route('usuarios.index')
-            ->with('success', 'Usuario registrado correctamente.');
+            return redirect()
+                ->route('usuarios.index')
+                ->with('success', str_replace(':nombre', $usuario->nombre, config('messages.usuarios.store.success')));
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('usuarios.index')
+                ->with('error', config('messages.usuarios.store.error'));
+        }
     }
 
     public function show(Usuario $usuario)
@@ -59,42 +66,54 @@ class UsuarioController extends Controller
 
     public function update(Request $request, Usuario $usuario)
     {
-        $data = $this->validateData($request, $usuario->id);
+        try {
+            $data = $this->validateData($request, $usuario->id);
 
-        if (!empty($data['password'])) {
-            $data['password'] = Hash::make($data['password']);
-        } else {
-            unset($data['password']);
+            if (! empty($data['password'])) {
+                $data['password'] = Hash::make($data['password']);
+            } else {
+                unset($data['password']);
+            }
+
+            $data['estado'] = $request->boolean('estado', true);
+
+            $usuario->update($data);
+
+            return redirect()
+                ->route('usuarios.index')
+                ->with('success', config('messages.usuarios.update.success'));
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('usuarios.index')
+                ->with('error', config('messages.usuarios.update.error'));
         }
-
-        $data['estado'] = $request->boolean('estado', true);
-
-        $usuario->update($data);
-
-        return redirect()
-            ->route('usuarios.index')
-            ->with('success', 'Usuario actualizado correctamente.');
     }
 
     public function destroy(Usuario $usuario)
     {
         if (auth()->id() === $usuario->id) {
-            return back()->with('error', 'No puede eliminar su propio usuario.');
+            return back()->with('warning', config('messages.usuarios.destroy.warning'));
         }
 
-        $usuario->delete();
+        try {
+            $usuario->delete();
 
-        return redirect()
-            ->route('usuarios.index')
-            ->with('success', 'Usuario eliminado correctamente.');
+            return redirect()
+                ->route('usuarios.index')
+                ->with('success', config('messages.usuarios.destroy.success'));
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('usuarios.index')
+                ->with('error', config('messages.usuarios.destroy.error'));
+        }
     }
 
     protected function validateData(Request $request, ?int $id = null): array
     {
         return $request->validate([
             'nombre' => ['required', 'string', 'max:200'],
-            'email'  => ['required', 'email', 'max:150', Rule::unique('usuarios', 'email')->ignore($id)],
-            'rol'    => ['required', 'in:admin,docente,auxiliar,directivo,readonly'],
+            'email' => ['required', 'email', 'max:150', Rule::unique('usuarios', 'email')->ignore($id)],
+            'rol' => ['required', 'in:admin,docente,auxiliar,directivo,readonly'],
             'password' => [$id ? 'nullable' : 'required', 'string', 'min:6', 'max:50'],
         ]);
     }

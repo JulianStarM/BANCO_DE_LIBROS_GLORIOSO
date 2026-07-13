@@ -24,7 +24,7 @@ class DevolucionController extends Controller
 
     public function index(Request $request): View
     {
-        $query = Devolucion::with(['estudiante', 'entrega', 'usuarioRegistro', 'anioEscolar']);
+        $query = Devolucion::with(['estudiante', 'entrega', 'padre', 'usuarioRegistro', 'anioEscolar', 'detalles.libro']);
         if ($request->filled('buscar')) {
             $buscar = $request->input('buscar');
             $query->where(function ($q) use ($buscar) {
@@ -160,11 +160,11 @@ class DevolucionController extends Controller
             ]);
 
             return redirect()->route('devoluciones.show', $devolucion)
-                ->with('success', "Devolución {$devolucion->codigo_general} registrada.");
+                ->with('success', str_replace([':codigo', ':devueltos', ':deficientes', ':perdidos'], [$devolucion->codigo_general, $totalDevueltos, $totalDeficientes, $totalPerdidos], config('messages.devoluciones.store.success')));
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return back()->with('error', 'Error: '.$e->getMessage())->withInput();
+            return back()->with('error', config('messages.devoluciones.store.error'))->withInput();
         }
     }
 
@@ -298,13 +298,13 @@ class DevolucionController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => "Devolución {$devolucion->codigo_general} registrada correctamente.",
+                'message' => str_replace([':codigo', ':devueltos', ':deficientes', ':perdidos'], [$devolucion->codigo_general, $totalDevueltos, $totalDeficientes, $totalPerdidos], config('messages.devoluciones.store.success')),
                 'devolucion' => $devolucion->load('estudiante'),
             ]);
         } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error de validación.',
+                'message' => config('messages.sistema.validation.error'),
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
@@ -312,7 +312,7 @@ class DevolucionController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Error al registrar: '.$e->getMessage(),
+                'message' => config('messages.devoluciones.store.error'),
             ], 500);
         }
     }
@@ -334,7 +334,142 @@ class DevolucionController extends Controller
         $devolucion->update($request->only('estado', 'observaciones'));
 
         return redirect()->route('devoluciones.show', $devolucion)
-            ->with('success', 'Devolución actualizada correctamente.');
+            ->with('success', str_replace(':codigo', $devolucion->codigo_general, config('messages.devoluciones.update.success')));
+    }
+
+    /**
+     * API: Update devolucion via AJAX (modal form).
+     */
+    public function updateApi(Request $request, Devolucion $devolucion): JsonResponse
+    {
+        try {
+            $request->validate([
+                'estado' => ['required', 'in:completada,parcial,anulada'],
+                'observaciones' => ['nullable', 'string'],
+                'detalles' => ['required', 'array', 'min:1'],
+                'detalles.*.id' => ['required', 'exists:detalle_devoluciones,id'],
+                'detalles.*.id_libro' => ['required', 'exists:libros,id'],
+                'detalles.*.estado_libro' => ['required', 'in:bueno,deteriorado,deficiente,no_devuelto,perdido'],
+                'detalles.*.observaciones' => ['nullable', 'string'],
+            ]);
+
+            DB::beginTransaction();
+
+            $devolucion->update($request->only('estado', 'observaciones'));
+
+            $totalDevueltos = 0;
+            $totalNoDevueltos = 0;
+            $totalDeficientes = 0;
+            $totalPerdidos = 0;
+
+            foreach ($request->input('detalles') as $detalleInput) {
+                $detalle = DetalleDevolucion::with('libro')->findOrFail($detalleInput['id']);
+                $libro = $detalle->libro;
+                $estadoAnterior = $detalle->estado_libro;
+                $estadoNuevo = $detalleInput['estado_libro'];
+
+                if ($estadoAnterior !== $estadoNuevo) {
+                    // Revertir efecto del estado anterior
+                    $this->revertirEstadoDevolucion($libro, $estadoAnterior);
+                    // Aplicar efecto del nuevo estado
+                    $this->aplicarEstadoDevolucion($libro, $estadoNuevo);
+
+                    InventarioMovimiento::create([
+                        'id_libro' => $libro->id,
+                        'tipo_movimiento' => 'ajuste',
+                        'cantidad' => 0,
+                        'cantidad_anterior' => $libro->cantidad_disponible,
+                        'cantidad_nueva' => $libro->cantidad_disponible,
+                        'referencia_tipo' => 'devolucion_edicion',
+                        'referencia_id' => $devolucion->id,
+                        'id_usuario' => auth()->id(),
+                        'observaciones' => "Cambio estado: {$estadoAnterior} → {$estadoNuevo}",
+                    ]);
+                }
+
+                $detalle->update([
+                    'estado_libro' => $estadoNuevo,
+                    'observaciones' => $detalleInput['observaciones'] ?? null,
+                ]);
+
+                // Contar para totales
+                if (in_array($estadoNuevo, ['bueno', 'deteriorado'])) {
+                    $totalDevueltos++;
+                } elseif ($estadoNuevo === 'deficiente') {
+                    $totalDeficientes++;
+                } elseif ($estadoNuevo === 'perdido') {
+                    $totalPerdidos++;
+                } else {
+                    $totalNoDevueltos++;
+                }
+            }
+
+            $devolucion->update([
+                'total_devueltos' => $totalDevueltos,
+                'total_no_devueltos' => $totalNoDevueltos,
+                'total_deficientes' => $totalDeficientes,
+                'total_perdidos' => $totalPerdidos,
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => str_replace(':codigo', $devolucion->codigo_general, config('messages.devoluciones.update.success')),
+                'devolucion' => $devolucion->load('detalles.libro'),
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => config('messages.sistema.validation.error'),
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => config('messages.devoluciones.update.error'),
+            ], 500);
+        }
+    }
+
+    /**
+     * Revertir el efecto de inventario de un estado de devolución anterior.
+     */
+    private function revertirEstadoDevolucion(Libro $libro, string $estado): void
+    {
+        if (in_array($estado, ['bueno', 'deteriorado'])) {
+            $libro->decrement('cantidad_disponible');
+            $libro->decrement('cantidad_devuelta');
+            $libro->increment('cantidad_entregada');
+        } elseif ($estado === 'deficiente') {
+            $libro->decrement('cantidad_deficiente');
+            $libro->increment('cantidad_entregada');
+        } elseif ($estado === 'perdido') {
+            $libro->decrement('cantidad_perdida');
+            $libro->increment('cantidad_entregada');
+        }
+        // no_devuelto: no afecta inventario
+    }
+
+    /**
+     * Aplicar el efecto de inventario de un nuevo estado de devolución.
+     */
+    private function aplicarEstadoDevolucion(Libro $libro, string $estado): void
+    {
+        if (in_array($estado, ['bueno', 'deteriorado'])) {
+            $libro->increment('cantidad_disponible');
+            $libro->increment('cantidad_devuelta');
+            $libro->decrement('cantidad_entregada');
+        } elseif ($estado === 'deficiente') {
+            $libro->increment('cantidad_deficiente');
+            $libro->decrement('cantidad_entregada');
+        } elseif ($estado === 'perdido') {
+            $libro->increment('cantidad_perdida');
+            $libro->decrement('cantidad_entregada');
+        }
+        // no_devuelto: no afecta inventario
     }
 
     public function show(Devolucion $devolucion): View

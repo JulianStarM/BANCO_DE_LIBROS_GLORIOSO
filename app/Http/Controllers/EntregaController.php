@@ -25,7 +25,7 @@ class EntregaController extends Controller
 
     public function index(Request $request): View
     {
-        $query = Entrega::with(['estudiante', 'anioEscolar', 'usuarioRegistro']);
+        $query = Entrega::with(['estudiante', 'padre', 'anioEscolar', 'usuarioRegistro', 'detalles.libro']);
         if ($request->filled('buscar')) {
             $buscar = $request->input('buscar');
             $query->where(function ($q) use ($buscar) {
@@ -70,6 +70,8 @@ class EntregaController extends Controller
 
         $entregas = $query->orderByDesc('fecha_entrega')->orderByDesc('id')->paginate(20)->withQueryString();
 
+        $librosDisponibles = Libro::activos()->conStock()->orderBy('grado')->orderBy('area')->orderBy('nombre')->get(['id', 'codigo_libro', 'nombre', 'grado', 'nivel']);
+
         return view('entregas.index', compact(
             'entregas',
             'totalEstudiantes',
@@ -81,7 +83,8 @@ class EntregaController extends Controller
             'entregasPorGrado',
             'gradoOptions',
             'seccionOptions',
-            'anioEscolarOptions'
+            'anioEscolarOptions',
+            'librosDisponibles'
         ));
     }
 
@@ -115,7 +118,7 @@ class EntregaController extends Controller
 
         $anioActual = AnioEscolar::actual();
         if (! $anioActual) {
-            return back()->with('error', 'No hay un año escolar activo.')->withInput();
+            return back()->with('error', config('messages.entregas.validacion.error'))->withInput();
         }
 
         $estudiante = Estudiante::findOrFail($request->input('id_estudiante'));
@@ -127,7 +130,7 @@ class EntregaController extends Controller
             ->first();
 
         if ($entregaExistente) {
-            return back()->with('error', 'El estudiante ya tiene una entrega registrada ('.$entregaExistente->codigo_general.').')->withInput();
+            return back()->with('warning', str_replace(':codigo', $entregaExistente->codigo_general, config('messages.entregas.validacion.warning')))->withInput();
         }
 
         DB::beginTransaction();
@@ -177,7 +180,7 @@ class EntregaController extends Controller
                 if (! $libro->tieneStock($cantidad)) {
                     DB::rollBack();
 
-                    return back()->with('error', "Sin stock suficiente para: {$libro->nombre}")->withInput();
+                    return back()->with('error', str_replace(':titulo', $libro->nombre, config('messages.libros.stock.error')))->withInput();
                 }
 
                 DetalleEntrega::create([
@@ -212,11 +215,11 @@ class EntregaController extends Controller
             ]);
 
             return redirect()->route('entregas.show', $entrega)
-                ->with('success', "Entrega {$entrega->codigo_general} registrada ({$totalLibros} libros).");
+                ->with('success', str_replace([':codigo', ':total'], [$entrega->codigo_general, $totalLibros], config('messages.entregas.store.success')));
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return back()->with('error', 'Error al registrar entrega: '.$e->getMessage())->withInput();
+            return back()->with('error', config('messages.entregas.store.error'))->withInput();
         }
     }
 
@@ -248,7 +251,7 @@ class EntregaController extends Controller
 
             $anioActual = AnioEscolar::actual();
             if (! $anioActual) {
-                return response()->json(['success' => false, 'message' => 'No hay un año escolar activo.'], 422);
+                return response()->json(['success' => false, 'message' => config('messages.entregas.validacion.error')], 422);
             }
 
             $estudiante = Estudiante::findOrFail($request->input('id_estudiante'));
@@ -261,7 +264,7 @@ class EntregaController extends Controller
             if ($entregaExistente) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'El estudiante ya tiene una entrega registrada ('.$entregaExistente->codigo_general.').',
+                    'message' => str_replace(':codigo', $entregaExistente->codigo_general, config('messages.entregas.validacion.warning')),
                 ], 422);
             }
 
@@ -313,7 +316,7 @@ class EntregaController extends Controller
 
                     return response()->json([
                         'success' => false,
-                        'message' => "Sin stock suficiente para: {$libro->nombre}",
+                        'message' => str_replace(':titulo', $libro->nombre, config('messages.libros.stock.error')),
                     ], 422);
                 }
 
@@ -352,13 +355,13 @@ class EntregaController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => "Entrega {$entrega->codigo_general} registrada ({$totalLibros} libros).",
+                'message' => str_replace([':codigo', ':total'], [$entrega->codigo_general, $totalLibros], config('messages.entregas.store.success')),
                 'entrega' => $entrega,
             ]);
         } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error de validación.',
+                'message' => config('messages.sistema.validation.error'),
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
@@ -366,7 +369,7 @@ class EntregaController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Error al registrar entrega: '.$e->getMessage(),
+                'message' => config('messages.entregas.store.error'),
             ], 500);
         }
     }
@@ -381,14 +384,142 @@ class EntregaController extends Controller
     public function update(Request $request, Entrega $entrega): RedirectResponse
     {
         $request->validate([
-            'estado' => ['required', 'in:completada,anulada,pending'],
+            'estado' => ['required', 'in:completada,parcial,anulada'],
             'observaciones' => ['nullable', 'string'],
         ]);
 
         $entrega->update($request->only('estado', 'observaciones'));
 
         return redirect()->route('entregas.show', $entrega)
-            ->with('success', 'Entrega actualizada correctamente.');
+            ->with('success', str_replace(':codigo', $entrega->codigo_general, config('messages.entregas.update.success')));
+    }
+
+    /**
+     * API: Update entrega via AJAX (modal form).
+     */
+    public function updateApi(Request $request, Entrega $entrega): JsonResponse
+    {
+        try {
+            $request->validate([
+                'estado' => ['required', 'in:completada,parcial,anulada'],
+                'observaciones' => ['nullable', 'string'],
+                'libros' => ['required', 'array', 'min:1'],
+                'libros.*' => ['required', 'integer', 'exists:libros,id'],
+            ]);
+
+            DB::beginTransaction();
+
+            $entrega->update($request->only('estado', 'observaciones'));
+
+            $nuevosLibros = array_unique(array_map('intval', $request->input('libros')));
+            $detallesActuales = $entrega->detalles()->with('libro', 'detalleDevolucion')->get();
+            $librosActuales = $detallesActuales->keyBy('id_libro');
+            $warnings = [];
+
+            // Libros a eliminar (están en DB pero no en la nueva lista)
+            foreach ($detallesActuales as $detalle) {
+                if (! in_array($detalle->id_libro, $nuevosLibros)) {
+                    if ($detalle->detalleDevolucion) {
+                        $warnings[] = "No se puede quitar '{$detalle->libro->nombre}' porque ya tiene una devolución registrada.";
+
+                        continue;
+                    }
+
+                    $libro = $detalle->libro;
+                    $cantidad = $detalle->cantidad ?: 1;
+
+                    $libro->increment('cantidad_disponible', $cantidad);
+                    DB::table('libros')->where('id', $libro->id)->update([
+                        'cantidad_entregada' => DB::raw('GREATEST(0, cantidad_entregada - '.(int) $cantidad.')'),
+                    ]);
+
+                    InventarioMovimiento::create([
+                        'id_libro' => $libro->id,
+                        'tipo_movimiento' => 'ajuste',
+                        'cantidad' => $cantidad,
+                        'cantidad_anterior' => $libro->cantidad_disponible - $cantidad,
+                        'cantidad_nueva' => $libro->cantidad_disponible,
+                        'referencia_tipo' => 'entrega_edicion',
+                        'referencia_id' => $entrega->id,
+                        'id_usuario' => auth()->id(),
+                        'observaciones' => 'Edición de entrega: libro quitado',
+                    ]);
+
+                    $detalle->delete();
+                }
+            }
+
+            // Libros a agregar (están en la nueva lista pero no en DB)
+            $orden = $detallesActuales->count();
+            foreach ($nuevosLibros as $idLibro) {
+                if (! $librosActuales->has($idLibro)) {
+                    $libro = Libro::findOrFail($idLibro);
+                    $cantidad = 1;
+
+                    if (! $libro->tieneStock($cantidad)) {
+                        DB::rollBack();
+
+                        return response()->json([
+                            'success' => false,
+                            'message' => str_replace(':titulo', $libro->nombre, config('messages.libros.stock.error')),
+                        ], 422);
+                    }
+
+                    DetalleEntrega::create([
+                        'id_entrega' => $entrega->id,
+                        'id_libro' => $libro->id,
+                        'cantidad' => $cantidad,
+                        'estado_entrega' => 'entregado',
+                        'numero_orden' => $orden++,
+                    ]);
+
+                    $libro->decrement('cantidad_disponible', $cantidad);
+                    $libro->increment('cantidad_entregada', $cantidad);
+
+                    InventarioMovimiento::create([
+                        'id_libro' => $libro->id,
+                        'tipo_movimiento' => 'entrega',
+                        'cantidad' => -$cantidad,
+                        'cantidad_anterior' => $libro->cantidad_disponible + $cantidad,
+                        'cantidad_nueva' => $libro->cantidad_disponible,
+                        'referencia_tipo' => 'entrega_edicion',
+                        'referencia_id' => $entrega->id,
+                        'id_usuario' => auth()->id(),
+                        'observaciones' => 'Edición de entrega: libro agregado',
+                    ]);
+                }
+            }
+
+            $totalLibros = $entrega->detalles()->sum('cantidad');
+            $entrega->update(['total_libros' => $totalLibros]);
+
+            DB::commit();
+
+            $message = str_replace(':codigo', $entrega->codigo_general, config('messages.entregas.update.success'));
+            if (! empty($warnings)) {
+                $message .= ' '.implode(' ', $warnings);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'entrega' => $entrega->load('detalles.libro'),
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => config('messages.sistema.validation.error'),
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => config('messages.entregas.update.error'),
+                'debug' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**

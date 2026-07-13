@@ -6,8 +6,10 @@ use App\Models\AnioEscolar;
 use App\Models\AuditoriaLog;
 use App\Models\InventarioMovimiento;
 use App\Models\Libro;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class LibroController extends Controller
@@ -23,19 +25,30 @@ class LibroController extends Controller
                     ->orWhere('area', 'like', "%{$buscar}%");
             });
         }
-        if ($request->filled('grado')) { $query->deGrado((int) $request->input('grado')); }
-        if ($request->filled('nivel')) { $query->deNivel($request->input('nivel')); }
-        if ($request->filled('area')) { $query->where('area', $request->input('area')); }
-        if ($request->filled('estado')) { $query->where('estado', $request->input('estado')); }
+        if ($request->filled('grado')) {
+            $query->deGrado((int) $request->input('grado'));
+        }
+        if ($request->filled('nivel')) {
+            $query->deNivel($request->input('nivel'));
+        }
+        if ($request->filled('area')) {
+            $query->where('area', $request->input('area'));
+        }
+        if ($request->filled('estado')) {
+            $query->where('estado', $request->input('estado'));
+        }
 
         $libros = $query->orderBy('grado')->orderBy('area')->paginate(20)->withQueryString();
         $areas = Libro::select('area')->distinct()->orderBy('area')->pluck('area');
-        return view('libros.index', compact('libros', 'areas'));
+        $aniosEscolares = AnioEscolar::orderByDesc('anio')->get();
+
+        return view('libros.index', compact('libros', 'areas', 'aniosEscolares'));
     }
 
     public function create(): View
     {
         $aniosEscolares = AnioEscolar::orderByDesc('anio')->get();
+
         return view('libros.create', compact('aniosEscolares'));
     }
 
@@ -70,13 +83,16 @@ class LibroController extends Controller
             'accion' => 'crear', 'modulo' => 'libros', 'registro_id' => $libro->id,
             'descripcion' => "Libro registrado: {$libro->nombre}",
         ]);
-        return redirect()->route('libros.index')->with('success', "Libro \"{$libro->nombre}\" registrado.");
+
+        $msg = str_replace('"":titulo""', '"'.$libro->nombre.'"', config('messages.libros.store.success'));
+
+        return redirect()->route('libros.index')->with('success', $msg);
     }
 
     /**
      * API: Store libro via AJAX (modal form).
      */
-    public function storeApi(Request $request): \Illuminate\Http\JsonResponse
+    public function storeApi(Request $request): JsonResponse
     {
         try {
             $validated = $request->validate([
@@ -111,19 +127,19 @@ class LibroController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => "Libro \"{$libro->nombre}\" registrado correctamente.",
+                'message' => str_replace('"":titulo""', '"'.$libro->nombre.'"', config('messages.libros.store.success')),
                 'libro' => $libro,
             ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error de validación.',
+                'message' => config('messages.sistema.validation.error'),
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error al registrar: ' . $e->getMessage(),
+                'message' => config('messages.libros.store.error'),
             ], 500);
         }
     }
@@ -131,12 +147,14 @@ class LibroController extends Controller
     public function show(Libro $libro): View
     {
         $libro->load(['movimientos' => fn ($q) => $q->with('usuario')->orderByDesc('created_at')->limit(50)]);
+
         return view('libros.show', compact('libro'));
     }
 
     public function edit(Libro $libro): View
     {
         $aniosEscolares = AnioEscolar::orderByDesc('anio')->get();
+
         return view('libros.edit', compact('libro', 'aniosEscolares'));
     }
 
@@ -169,7 +187,8 @@ class LibroController extends Controller
             'accion' => 'actualizar', 'modulo' => 'libros', 'registro_id' => $libro->id,
             'descripcion' => "Libro actualizado: {$libro->nombre}",
         ]);
-        return redirect()->route('libros.index')->with('success', "Libro actualizado.");
+
+        return redirect()->route('libros.index')->with('success', config('messages.libros.update.success'));
     }
 
     public function destroy(Libro $libro): RedirectResponse
@@ -179,6 +198,33 @@ class LibroController extends Controller
             'accion' => 'desactivar', 'modulo' => 'libros', 'registro_id' => $libro->id,
             'descripcion' => "Libro descontinuado: {$libro->nombre}",
         ]);
-        return redirect()->route('libros.index')->with('success', "Libro descontinuado.");
+
+        return redirect()->route('libros.index')->with('warning', config('messages.libros.destroy.warning'));
+    }
+
+    /**
+     * API: Buscar libros por nombre o código (para autocompletado).
+     */
+    public function buscarLibros(Request $request): JsonResponse
+    {
+        $q = trim((string) $request->get('q', ''));
+        if (strlen($q) < 1) {
+            return response()->json([]);
+        }
+
+        $libros = Libro::query()
+            ->where(function ($w) use ($q) {
+                $w->where('nombre', 'like', "%{$q}%")
+                    ->orWhere('codigo_libro', 'like', "%{$q}%")
+                    ->orWhere('area', 'like', "%{$q}%");
+            })
+            ->where('estado', 'activo')
+            ->where('cantidad_disponible', '>', 0)
+            ->orderBy('grado')
+            ->orderBy('area')
+            ->limit(20)
+            ->get(['id', 'codigo_libro', 'nombre', 'area', 'grado', 'nivel', 'cantidad_disponible']);
+
+        return response()->json($libros);
     }
 }

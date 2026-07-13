@@ -8,7 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
         btnGuardarLibro.addEventListener('click', () => {
             const actionUrl = formNuevoLibro.getAttribute('data-action');
             if (window.submitModalForm) {
-                window.submitModalForm('formNuevoLibro', actionUrl, 'modalNuevoLibro', () => {
+                window.submitModalForm('formNuevoLibro', actionUrl, 'modalNuevoLibro', (data) => {
+                    localStorage.setItem('app_toast', JSON.stringify({message: data.message, type: 'success'}));
                     setTimeout(() => location.reload(), 800);
                 });
             }

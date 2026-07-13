@@ -354,13 +354,13 @@
                 const nom = document.getElementById('apoderado_nombres').value;
                 const ape = document.getElementById('apoderado_apellidos').value;
                 if(!dni || !nom || !ape) {
-                    alert('Por favor, completa los datos requeridos del apoderado (DNI, Nombres, Apellidos).');
+                    window.showToast && window.showToast('Por favor, completa los datos requeridos del apoderado (DNI, Nombres, Apellidos).', 'warning');
                     return;
                 }
             }
 
             if(document.querySelectorAll('.cb-libro:checked').length === 0) {
-                alert('Debe seleccionar al menos un libro para entregar.');
+                window.showToast && window.showToast('Debe seleccionar al menos un libro para entregar.', 'warning');
                 return;
             }
 
