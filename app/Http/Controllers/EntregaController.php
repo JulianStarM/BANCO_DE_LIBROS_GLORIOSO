@@ -16,6 +16,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -225,9 +226,40 @@ class EntregaController extends Controller
 
     public function show(Entrega $entrega): View
     {
-        $entrega->load(['estudiante', 'anioEscolar', 'usuarioRegistro', 'detalles.libro', 'devolucion']);
+        $entrega->load(['estudiante', 'anioEscolar', 'usuarioRegistro', 'detalles.libro', 'devoluciones']);
 
         return view('entregas.show', compact('entrega'));
+    }
+
+    /**
+     * Actualiza el código general de una entrega (solo administradores).
+     */
+    public function actualizarCodigo(Request $request, Entrega $entrega): RedirectResponse
+    {
+        abort_if(! auth()->user()?->esAdmin(), 403, 'No tiene permisos para modificar el código de entrega.');
+
+        $validated = $request->validate([
+            'codigo_general' => [
+                'required',
+                'string',
+                'max:30',
+                Rule::unique('entregas', 'codigo_general')->ignore($entrega->id),
+            ],
+        ]);
+
+        $codigoAnterior = $entrega->codigo_general;
+        $entrega->update(['codigo_general' => $validated['codigo_general']]);
+
+        AuditoriaLog::registrar([
+            'accion' => 'actualizar',
+            'modulo' => 'entregas',
+            'registro_id' => $entrega->id,
+            'descripcion' => "Código de entrega cambiado de {$codigoAnterior} a {$entrega->codigo_general}",
+        ]);
+
+        return redirect()
+            ->route('entregas.show', $entrega)
+            ->with('success', config('messages.entregas.codigo.success'));
     }
 
     /**
@@ -352,10 +384,12 @@ class EntregaController extends Controller
             ]);
 
             $entrega->load('estudiante');
+            $mensaje = str_replace([':codigo', ':total'], [$entrega->codigo_general, $totalLibros], config('messages.entregas.store.success'));
+            session()->flash('success', $mensaje);
 
             return response()->json([
                 'success' => true,
-                'message' => str_replace([':codigo', ':total'], [$entrega->codigo_general, $totalLibros], config('messages.entregas.store.success')),
+                'message' => $mensaje,
                 'entrega' => $entrega,
             ]);
         } catch (ValidationException $e) {

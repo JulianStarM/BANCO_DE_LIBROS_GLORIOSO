@@ -98,11 +98,11 @@
                     <table class="items-table">
                         <thead>
                             <tr>
-                                <th style="width: 8%;" class="text-center">N°</th>
-                                <th style="width: 18%;">Código del libro</th>
-                                <th style="width: 44%;">Nombre del libro</th>
-                                <th style="width: 15%;" class="text-center">Estado</th>
-                                <th style="width: 15%;">Observaciones</th>
+                                <th style="width: 5%;" class="text-center">N°</th>
+                                <th style="width: 16%;">Código del libro</th>
+                                <th style="width: 49%;">Nombre del libro</th>
+                                <th style="width: 14%;" class="text-center">Estado</th>
+                                <th style="width: 16%;">Observaciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -124,7 +124,7 @@
                 </div>
             </div>
 
-            <p class="intro" style="font-size: 8.5pt; margin-top: 2mm;">
+            <p class="intro" style="font-size: 8.5pt; margin-top: 1mm;">
                 El estudiante y/o apoderado declara haber recibido los textos en el estado indicado y se compromete a devolverlos en las condiciones establecidas por la institución al finalizar el año escolar.
             </p>
 
@@ -143,7 +143,7 @@
             </div>
 
             {{-- Sello --}}
-            <div style="text-align: center; margin-top: 4mm;">
+            <div style="text-align: center; margin-top: 2mm;">
                 <p style="font-size: 7.5pt; color: #555; margin: 0;">Espacio para sello institucional</p>
             </div>
 

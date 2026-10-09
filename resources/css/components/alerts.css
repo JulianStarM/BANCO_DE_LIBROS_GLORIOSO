@@ -12,7 +12,7 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.75rem 1.25rem;
+    padding: 0.75rem 1rem;
     border-radius: var(--border-radius);
     color: #ffffff;
     box-shadow: var(--shadow-lg);
@@ -44,8 +44,8 @@
 }
 
 .toast .icon {
-    width: 1.25rem;
-    height: 1.25rem;
+    width: 1.125rem;
+    height: 1.125rem;
     flex-shrink: 0;
 }
 
@@ -61,4 +61,34 @@
     to {
         transform: rotate(360deg);
     }
+}
+
+/* Bootstrap alert overrides para mantener consistencia visual */
+.alert {
+    border-radius: var(--border-radius);
+    font-size: var(--font-size-sm);
+}
+
+.alert-warning {
+    background-color: var(--color-warning-light);
+    color: #92400e;
+    border-color: #fde68a;
+}
+
+.alert-danger {
+    background-color: var(--color-danger-light);
+    color: #991b1b;
+    border-color: #fecaca;
+}
+
+.alert-success {
+    background-color: var(--color-success-light);
+    color: #166534;
+    border-color: #bbf7d0;
+}
+
+.alert-info {
+    background-color: var(--color-info-light);
+    color: #075985;
+    border-color: #bae6fd;
 }

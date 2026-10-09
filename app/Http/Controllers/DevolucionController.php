@@ -55,7 +55,7 @@ class DevolucionController extends Controller
             $entrega = Entrega::with(['estudiante', 'detalles.libro'])->findOrFail($request->input('id_entrega'));
         }
         $entregasPendientes = Entrega::with('estudiante')
-            ->completadas()->sinDevolucion()
+            ->completadas()->conPendientes()
             ->orderByDesc('fecha_entrega')->get();
 
         return view('devoluciones.create', compact('entrega', 'entregasPendientes'));
@@ -63,107 +63,14 @@ class DevolucionController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
-            'id_entrega' => ['required', 'exists:entregas,id'],
-            'tipo_firmante' => ['required', 'in:estudiante,apoderado'],
-            'detalles' => ['required', 'array', 'min:1'],
-            'detalles.*.id_detalle_entrega' => ['required', 'exists:detalle_entregas,id'],
-            'detalles.*.id_libro' => ['required', 'exists:libros,id'],
-            'detalles.*.estado_libro' => ['required', 'in:bueno,deteriorado,deficiente,no_devuelto,perdido'],
-            'detalles.*.observaciones' => ['nullable', 'string'],
-            'observaciones' => ['nullable', 'string'],
-        ]);
-
-        $entrega = Entrega::findOrFail($request->input('id_entrega'));
-        if ($entrega->tieneDevolucion()) {
-            return back()->with('error', 'Esta entrega ya tiene devolución registrada.');
-        }
-
-        $anioActual = AnioEscolar::actual();
-        DB::beginTransaction();
         try {
-            $totalDevueltos = 0;
-            $totalNoDevueltos = 0;
-            $totalDeficientes = 0;
-            $totalPerdidos = 0;
-
-            $devolucion = Devolucion::create([
-                'codigo_general' => Devolucion::generarCodigo($anioActual?->anio ?? date('Y')),
-                'id_entrega' => $entrega->id,
-                'id_estudiante' => $entrega->id_estudiante,
-                'id_anio_escolar' => $entrega->id_anio_escolar,
-                'id_usuario_registro' => auth()->id(),
-                'tipo_firmante' => $request->input('tipo_firmante'),
-                'fecha_devolucion' => now()->toDateString(),
-                'hora_devolucion' => now()->toTimeString(),
-                'estado' => 'completada',
-                'observaciones' => $request->input('observaciones'),
-                'ip_registro' => $request->ip(),
-            ]);
-
-            foreach ($request->input('detalles') as $detalle) {
-                DetalleDevolucion::create([
-                    'id_devolucion' => $devolucion->id,
-                    'id_libro' => $detalle['id_libro'],
-                    'id_detalle_entrega' => $detalle['id_detalle_entrega'],
-                    'estado_libro' => $detalle['estado_libro'],
-                    'observaciones' => $detalle['observaciones'] ?? null,
-                ]);
-
-                $libro = Libro::findOrFail($detalle['id_libro']);
-                $estado = $detalle['estado_libro'];
-
-                if (in_array($estado, ['bueno', 'deteriorado'])) {
-                    $libro->increment('cantidad_disponible');
-                    $libro->increment('cantidad_devuelta');
-                    $libro->decrement('cantidad_entregada');
-                    $totalDevueltos++;
-                    $tipoMov = 'devolucion';
-                } elseif ($estado === 'deficiente') {
-                    $libro->increment('cantidad_deficiente');
-                    $libro->decrement('cantidad_entregada');
-                    $totalDeficientes++;
-                    $tipoMov = 'devolucion';
-                } elseif ($estado === 'perdido') {
-                    $libro->increment('cantidad_perdida');
-                    $libro->decrement('cantidad_entregada');
-                    $totalPerdidos++;
-                    $tipoMov = 'baja';
-                } else {
-                    $totalNoDevueltos++;
-                    $tipoMov = 'devolucion';
-                }
-
-                InventarioMovimiento::create([
-                    'id_libro' => $libro->id, 'tipo_movimiento' => $tipoMov,
-                    'cantidad' => in_array($estado, ['bueno', 'deteriorado']) ? 1 : 0,
-                    'cantidad_anterior' => $libro->cantidad_disponible,
-                    'cantidad_nueva' => $libro->cantidad_disponible,
-                    'referencia_tipo' => 'devolucion', 'referencia_id' => $devolucion->id,
-                    'id_usuario' => auth()->id(),
-                    'observaciones' => "Estado: {$estado}",
-                ]);
-            }
-
-            $devolucion->update([
-                'total_devueltos' => $totalDevueltos,
-                'total_no_devueltos' => $totalNoDevueltos,
-                'total_deficientes' => $totalDeficientes,
-                'total_perdidos' => $totalPerdidos,
-            ]);
-
-            DB::commit();
-
-            AuditoriaLog::registrar([
-                'accion' => 'crear', 'modulo' => 'devoluciones', 'registro_id' => $devolucion->id,
-                'descripcion' => "Devolución {$devolucion->codigo_general} registrada",
-            ]);
+            $devolucion = $this->guardarDevolucion($request);
 
             return redirect()->route('devoluciones.show', $devolucion)
-                ->with('success', str_replace([':codigo', ':devueltos', ':deficientes', ':perdidos'], [$devolucion->codigo_general, $totalDevueltos, $totalDeficientes, $totalPerdidos], config('messages.devoluciones.store.success')));
+                ->with('success', str_replace([':codigo', ':devueltos', ':deficientes', ':perdidos'], [$devolucion->codigo_general, $devolucion->total_devueltos, $devolucion->total_deficientes, $devolucion->total_perdidos], config('messages.devoluciones.store.success')));
+        } catch (ValidationException $e) {
+            return back()->withErrors($e->validator)->withInput()->with('error', 'Datos inválidos.');
         } catch (\Exception $e) {
-            DB::rollBack();
-
             return back()->with('error', config('messages.devoluciones.store.error'))->withInput();
         }
     }
@@ -174,8 +81,8 @@ class DevolucionController extends Controller
     public function pendientesApi(Request $request): JsonResponse
     {
         $q = trim((string) $request->get('q', ''));
-        $query = Entrega::with(['estudiante', 'detalles.libro'])
-            ->completadas()->sinDevolucion();
+        $query = Entrega::with(['estudiante', 'detalles.libro', 'detalles.devolucionesDetalle'])
+            ->completadas()->conPendientes();
 
         if ($q) {
             $query->whereHas('estudiante', function ($w) use ($q) {
@@ -187,6 +94,10 @@ class DevolucionController extends Controller
 
         $entregas = $query->orderByDesc('fecha_entrega')->limit(20)->get();
 
+        $entregas->each(function (Entrega $entrega) {
+            $entrega->setRelation('detalles', $entrega->detalles->filter->estaPendiente()->values());
+        });
+
         return response()->json($entregas);
     }
 
@@ -196,109 +107,14 @@ class DevolucionController extends Controller
     public function storeApi(Request $request): JsonResponse
     {
         try {
-            $request->validate([
-                'id_entrega' => ['required', 'exists:entregas,id'],
-                'tipo_firmante' => ['required', 'in:estudiante,apoderado'],
-                'detalles' => ['required', 'array', 'min:1'],
-                'detalles.*.id_detalle_entrega' => ['required', 'exists:detalle_entregas,id'],
-                'detalles.*.id_libro' => ['required', 'exists:libros,id'],
-                'detalles.*.estado_libro' => ['required', 'in:bueno,deteriorado,deficiente,no_devuelto,perdido'],
-                'detalles.*.observaciones' => ['nullable', 'string'],
-                'observaciones' => ['nullable', 'string'],
-            ]);
+            $devolucion = $this->guardarDevolucion($request);
 
-            $entrega = Entrega::findOrFail($request->input('id_entrega'));
-
-            if ($entrega->tieneDevolucion()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Esta entrega ya tiene una devolución registrada.',
-                ], 422);
-            }
-
-            $anioActual = AnioEscolar::actual();
-            DB::beginTransaction();
-
-            $totalDevueltos = 0;
-            $totalNoDevueltos = 0;
-            $totalDeficientes = 0;
-            $totalPerdidos = 0;
-
-            $devolucion = Devolucion::create([
-                'codigo_general' => Devolucion::generarCodigo($anioActual?->anio ?? date('Y')),
-                'id_entrega' => $entrega->id,
-                'id_estudiante' => $entrega->id_estudiante,
-                'id_anio_escolar' => $entrega->id_anio_escolar,
-                'id_usuario_registro' => auth()->id(),
-                'tipo_firmante' => $request->input('tipo_firmante'),
-                'fecha_devolucion' => now()->toDateString(),
-                'hora_devolucion' => now()->toTimeString(),
-                'estado' => 'completada',
-                'observaciones' => $request->input('observaciones'),
-                'ip_registro' => $request->ip(),
-            ]);
-
-            foreach ($request->input('detalles') as $detalle) {
-                DetalleDevolucion::create([
-                    'id_devolucion' => $devolucion->id,
-                    'id_libro' => $detalle['id_libro'],
-                    'id_detalle_entrega' => $detalle['id_detalle_entrega'],
-                    'estado_libro' => $detalle['estado_libro'],
-                    'observaciones' => $detalle['observaciones'] ?? null,
-                ]);
-
-                $libro = Libro::findOrFail($detalle['id_libro']);
-                $estado = $detalle['estado_libro'];
-
-                if (in_array($estado, ['bueno', 'deteriorado'])) {
-                    $libro->increment('cantidad_disponible');
-                    $libro->increment('cantidad_devuelta');
-                    $libro->decrement('cantidad_entregada');
-                    $totalDevueltos++;
-                    $tipoMov = 'devolucion';
-                } elseif ($estado === 'deficiente') {
-                    $libro->increment('cantidad_deficiente');
-                    $libro->decrement('cantidad_entregada');
-                    $totalDeficientes++;
-                    $tipoMov = 'devolucion';
-                } elseif ($estado === 'perdido') {
-                    $libro->increment('cantidad_perdida');
-                    $libro->decrement('cantidad_entregada');
-                    $totalPerdidos++;
-                    $tipoMov = 'baja';
-                } else {
-                    $totalNoDevueltos++;
-                    $tipoMov = 'devolucion';
-                }
-
-                InventarioMovimiento::create([
-                    'id_libro' => $libro->id, 'tipo_movimiento' => $tipoMov,
-                    'cantidad' => in_array($estado, ['bueno', 'deteriorado']) ? 1 : 0,
-                    'cantidad_anterior' => $libro->cantidad_disponible,
-                    'cantidad_nueva' => $libro->cantidad_disponible,
-                    'referencia_tipo' => 'devolucion', 'referencia_id' => $devolucion->id,
-                    'id_usuario' => auth()->id(),
-                    'observaciones' => "Estado: {$estado}",
-                ]);
-            }
-
-            $devolucion->update([
-                'total_devueltos' => $totalDevueltos,
-                'total_no_devueltos' => $totalNoDevueltos,
-                'total_deficientes' => $totalDeficientes,
-                'total_perdidos' => $totalPerdidos,
-            ]);
-
-            DB::commit();
-
-            AuditoriaLog::registrar([
-                'accion' => 'crear', 'modulo' => 'devoluciones', 'registro_id' => $devolucion->id,
-                'descripcion' => "Devolución {$devolucion->codigo_general} registrada",
-            ]);
+            $mensaje = str_replace([':codigo', ':devueltos', ':deficientes', ':perdidos'], [$devolucion->codigo_general, $devolucion->total_devueltos, $devolucion->total_deficientes, $devolucion->total_perdidos], config('messages.devoluciones.store.success'));
+            session()->flash('success', $mensaje);
 
             return response()->json([
                 'success' => true,
-                'message' => str_replace([':codigo', ':devueltos', ':deficientes', ':perdidos'], [$devolucion->codigo_general, $totalDevueltos, $totalDeficientes, $totalPerdidos], config('messages.devoluciones.store.success')),
+                'message' => $mensaje,
                 'devolucion' => $devolucion->load('estudiante'),
             ]);
         } catch (ValidationException $e) {
@@ -308,8 +124,6 @@ class DevolucionController extends Controller
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
-            DB::rollBack();
-
             return response()->json([
                 'success' => false,
                 'message' => config('messages.devoluciones.store.error'),
@@ -439,8 +253,12 @@ class DevolucionController extends Controller
      */
     private function revertirEstadoDevolucion(Libro $libro, string $estado): void
     {
-        if (in_array($estado, ['bueno', 'deteriorado'])) {
+        if ($estado === 'bueno') {
             $libro->decrement('cantidad_disponible');
+            $libro->decrement('cantidad_devuelta');
+            $libro->increment('cantidad_entregada');
+        } elseif ($estado === 'deteriorado') {
+            $libro->decrement('cantidad_deteriorado');
             $libro->decrement('cantidad_devuelta');
             $libro->increment('cantidad_entregada');
         } elseif ($estado === 'deficiente') {
@@ -458,15 +276,21 @@ class DevolucionController extends Controller
      */
     private function aplicarEstadoDevolucion(Libro $libro, string $estado): void
     {
-        if (in_array($estado, ['bueno', 'deteriorado'])) {
+        if ($estado === 'bueno') {
             $libro->increment('cantidad_disponible');
+            $libro->increment('cantidad_devuelta');
+            $libro->decrement('cantidad_entregada');
+        } elseif ($estado === 'deteriorado') {
+            $libro->increment('cantidad_deteriorado');
             $libro->increment('cantidad_devuelta');
             $libro->decrement('cantidad_entregada');
         } elseif ($estado === 'deficiente') {
             $libro->increment('cantidad_deficiente');
+            $libro->increment('cantidad_devuelta');
             $libro->decrement('cantidad_entregada');
         } elseif ($estado === 'perdido') {
             $libro->increment('cantidad_perdida');
+            $libro->increment('cantidad_devuelta');
             $libro->decrement('cantidad_entregada');
         }
         // no_devuelto: no afecta inventario
@@ -493,5 +317,124 @@ class DevolucionController extends Controller
     public function constancia(Devolucion $devolucion): Response
     {
         return $this->constanciaService->download($devolucion);
+    }
+
+    /**
+     * Guardar una devolución (web y API) respetando libros pendientes.
+     */
+    private function guardarDevolucion(Request $request): Devolucion
+    {
+        $datos = $request->validate([
+            'id_entrega' => ['required', 'exists:entregas,id'],
+            'tipo_firmante' => ['required', 'in:estudiante,apoderado'],
+            'detalles' => ['required', 'array', 'min:1'],
+            'detalles.*.id_detalle_entrega' => ['required', 'exists:detalle_entregas,id'],
+            'detalles.*.id_libro' => ['required', 'exists:libros,id'],
+            'detalles.*.estado_libro' => ['required', 'in:bueno,deteriorado,deficiente,no_devuelto,perdido'],
+            'detalles.*.observaciones' => ['nullable', 'string'],
+            'observaciones' => ['nullable', 'string'],
+        ]);
+
+        $entrega = Entrega::with('detalles')->findOrFail($datos['id_entrega']);
+        $pendientes = $entrega->detalles()->pendientes()->pluck('id')->toArray();
+
+        foreach ($datos['detalles'] as $detalle) {
+            if (! in_array($detalle['id_detalle_entrega'], $pendientes)) {
+                throw ValidationException::withMessages([
+                    'detalles' => 'Uno o más libros ya fueron devueltos o no pertenecen a la entrega seleccionada.',
+                ]);
+            }
+        }
+
+        $anioActual = AnioEscolar::actual();
+
+        return DB::transaction(function () use ($request, $datos, $entrega, $anioActual) {
+            $totalDevueltos = 0;
+            $totalNoDevueltos = 0;
+            $totalDeficientes = 0;
+            $totalPerdidos = 0;
+
+            $devolucion = Devolucion::create([
+                'codigo_general' => Devolucion::generarCodigo($anioActual?->anio ?? date('Y')),
+                'id_entrega' => $entrega->id,
+                'id_estudiante' => $entrega->id_estudiante,
+                'id_anio_escolar' => $entrega->id_anio_escolar,
+                'id_usuario_registro' => auth()->id(),
+                'tipo_firmante' => $datos['tipo_firmante'],
+                'fecha_devolucion' => now()->toDateString(),
+                'hora_devolucion' => now()->toTimeString(),
+                'estado' => 'completada',
+                'observaciones' => $datos['observaciones'] ?? null,
+                'ip_registro' => $request->ip(),
+            ]);
+
+            foreach ($datos['detalles'] as $detalle) {
+                DetalleDevolucion::create([
+                    'id_devolucion' => $devolucion->id,
+                    'id_libro' => $detalle['id_libro'],
+                    'id_detalle_entrega' => $detalle['id_detalle_entrega'],
+                    'estado_libro' => $detalle['estado_libro'],
+                    'observaciones' => $detalle['observaciones'] ?? null,
+                ]);
+
+                $libro = Libro::findOrFail($detalle['id_libro']);
+                $estado = $detalle['estado_libro'];
+                $cantidadAnterior = $libro->cantidad_disponible;
+
+                $this->aplicarEstadoDevolucion($libro, $estado);
+                $this->registrarMovimientoDevolucion($libro, $estado, $devolucion, $cantidadAnterior);
+
+                switch ($estado) {
+                    case 'bueno':
+                    case 'deteriorado':
+                        $totalDevueltos++;
+                        break;
+                    case 'deficiente':
+                        $totalDeficientes++;
+                        break;
+                    case 'perdido':
+                        $totalPerdidos++;
+                        break;
+                    case 'no_devuelto':
+                        $totalNoDevueltos++;
+                        break;
+                }
+            }
+
+            $estadoDevolucion = $entrega->detalles()->pendientes()->exists() ? 'parcial' : 'completada';
+
+            $devolucion->update([
+                'total_devueltos' => $totalDevueltos,
+                'total_no_devueltos' => $totalNoDevueltos,
+                'total_deficientes' => $totalDeficientes,
+                'total_perdidos' => $totalPerdidos,
+                'estado' => $estadoDevolucion,
+            ]);
+
+            AuditoriaLog::registrar([
+                'accion' => 'crear', 'modulo' => 'devoluciones', 'registro_id' => $devolucion->id,
+                'descripcion' => "Devolución {$devolucion->codigo_general} registrada",
+            ]);
+
+            return $devolucion;
+        });
+    }
+
+    /**
+     * Registrar movimiento de inventario para una devolución.
+     */
+    private function registrarMovimientoDevolucion(Libro $libro, string $estado, Devolucion $devolucion, int $cantidadAnterior): void
+    {
+        InventarioMovimiento::create([
+            'id_libro' => $libro->id,
+            'tipo_movimiento' => $estado === 'perdido' ? 'baja' : 'devolucion',
+            'cantidad' => $estado === 'bueno' ? 1 : 0,
+            'cantidad_anterior' => $cantidadAnterior,
+            'cantidad_nueva' => $libro->cantidad_disponible,
+            'referencia_tipo' => 'devolucion',
+            'referencia_id' => $devolucion->id,
+            'id_usuario' => auth()->id(),
+            'observaciones' => "Estado: {$estado}",
+        ]);
     }
 }

@@ -9,9 +9,8 @@ document.addEventListener('DOMContentLoaded', () => {
         btnGuardarEstudiante.addEventListener('click', () => {
             const actionUrl = formNuevoEstudiante.getAttribute('data-action');
             if (window.submitModalForm) {
-                window.submitModalForm('formNuevoEstudiante', actionUrl, 'modalNuevoEstudiante', (data) => {
-                    localStorage.setItem('app_toast', JSON.stringify({message: data.message, type: 'success'}));
-                    setTimeout(() => location.reload(), 800);
+                window.submitModalForm('formNuevoEstudiante', actionUrl, 'modalNuevoEstudiante', () => {
+                    location.reload();
                 });
             }
         });

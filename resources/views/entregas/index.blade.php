@@ -4,12 +4,12 @@
 @section('page-title', 'Entrega de libros')
 
 @section('content')
-<div class="d-flex flex-column gap-4">
-    <div class="card-app p-4">
+<div class="d-flex flex-column gap-3">
+    <div class="entregas-header-card card-app">
         <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-md-between gap-3">
             <div>
-                <h1 class="h3 fw-bold text-slate-900 mb-0">Entrega de libros</h1>
-                <p class="small text-slate-500 mt-2 mb-0">Asignación de libros por grado con código de entrega único por estudiante.</p>
+                <h1 class="entregas-header-title">Entrega de libros</h1>
+                <p class="entregas-header-subtitle">Asignación de libros por grado con código de entrega único por estudiante.</p>
             </div>
             <button type="button" onclick="openModal('modalNuevaEntrega')" class="btn-app btn-app-primary">
                 <i data-lucide="plus" class="icon"></i>
@@ -17,50 +17,50 @@
             </button>
         </div>
 
-        <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-6 g-3 mt-4">
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-6 g-2 mt-3">
             <div class="col">
-                <div class="card-app p-3 text-center">
-                    <p class="small text-slate-500 text-uppercase mb-2" style="letter-spacing: 0.2em;">Estudiantes</p>
-                    <p class="h3 fw-semibold text-slate-900 mb-0">{{ $totalEstudiantes ?? 0 }}</p>
+                <div class="entregas-stat-card card-app text-center">
+                    <p class="entregas-stat-label">Estudiantes</p>
+                    <p class="entregas-stat-value">{{ $totalEstudiantes ?? 0 }}</p>
                 </div>
             </div>
             <div class="col">
-                <div class="card-app p-3 text-center">
-                    <p class="small text-slate-500 text-uppercase mb-2" style="letter-spacing: 0.2em;">Libros</p>
-                    <p class="h3 fw-semibold text-slate-900 mb-0">{{ $totalLibros ?? 0 }}</p>
+                <div class="entregas-stat-card card-app text-center">
+                    <p class="entregas-stat-label">Libros</p>
+                    <p class="entregas-stat-value">{{ $totalLibros ?? 0 }}</p>
                 </div>
             </div>
             <div class="col">
-                <div class="card-app p-3 text-center">
-                    <p class="small text-slate-500 text-uppercase mb-2" style="letter-spacing: 0.2em;">Entregas</p>
-                    <p class="h3 fw-semibold text-slate-900 mb-0">{{ $totalEntregas ?? 0 }}</p>
+                <div class="entregas-stat-card card-app text-center">
+                    <p class="entregas-stat-label">Entregas</p>
+                    <p class="entregas-stat-value">{{ $totalEntregas ?? 0 }}</p>
                 </div>
             </div>
             <div class="col">
-                <div class="card-app p-3 text-center">
-                    <p class="small text-slate-500 text-uppercase mb-2" style="letter-spacing: 0.2em;">Libros entregados</p>
-                    <p class="h3 fw-semibold text-slate-900 mb-0">{{ $librosEntregados ?? 0 }}</p>
+                <div class="entregas-stat-card card-app text-center">
+                    <p class="entregas-stat-label">Libros entregados</p>
+                    <p class="entregas-stat-value">{{ $librosEntregados ?? 0 }}</p>
                 </div>
             </div>
             <div class="col">
-                <div class="card-app p-3 text-center">
-                    <p class="small text-slate-500 text-uppercase mb-2" style="letter-spacing: 0.2em;">Pendientes</p>
-                    <p class="h3 fw-semibold text-slate-900 mb-0">{{ $estudiantesPendientes ?? 0 }}</p>
+                <div class="entregas-stat-card card-app text-center">
+                    <p class="entregas-stat-label">Pendientes</p>
+                    <p class="entregas-stat-value">{{ $estudiantesPendientes ?? 0 }}</p>
                 </div>
             </div>
             <div class="col">
-                <div class="card-app p-3 text-center">
-                    <p class="small text-slate-500 text-uppercase mb-2" style="letter-spacing: 0.2em;">Avance</p>
-                    <p class="h3 fw-semibold text-slate-900 mb-0">{{ $avance ?? 0 }}%</p>
+                <div class="entregas-stat-card card-app text-center">
+                    <p class="entregas-stat-label">Avance</p>
+                    <p class="entregas-stat-value">{{ $avance ?? 0 }}%</p>
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- Filtros y tabla --}}
-    <div class="card-app">
+    {{-- Filtros --}}
+    <div class="card-app mb-3">
         <div class="card-header-base">
-            <div class="d-flex flex-column flex-sm-row align-items-sm-end justify-content-sm-between gap-3 mb-4">
+            <div class="d-flex flex-column flex-sm-row align-items-sm-end justify-content-sm-between gap-3 mb-3">
                 <div>
                     <h2 class="h5 fw-bold text-slate-900 mb-0">Historial de entregas</h2>
                     <p class="small text-slate-500 mt-1 mb-0">Busca y filtra las entregas registradas.</p>
@@ -70,7 +70,7 @@
 
             <form id="filtroEntregas" method="GET" action="{{ route('entregas.index') }}">
                 <div class="row g-3">
-                    <div class="col-lg-5 position-relative">
+                    <div class="col-lg-4 position-relative">
                         <i data-lucide="search" class="icon position-absolute text-slate-400" style="left: 1rem; top: 50%; transform: translateY(-50%);"></i>
                         <input type="text" name="buscar" value="{{ request('buscar') }}" placeholder="DNI, nombres, apellidos, código..." class="form-control-app ps-5" />
                     </div>
@@ -106,8 +106,10 @@
                 </div>
             </form>
         </div>
+    </div>
 
-        <div class="table-responsive-app">
+    {{-- Tabla --}}
+    <div class="table-responsive-app">
             <table class="table table-app">
                 <thead>
                     <tr>
@@ -175,12 +177,11 @@
             </table>
         </div>
 
-        @if($entregas->hasPages())
-            <div class="card-footer-base d-flex justify-content-center">
-                {{ $entregas->links('pagination::bootstrap-5') }}
-            </div>
-        @endif
-    </div>
+    @if($entregas->hasPages())
+        <div class="mt-3">
+            {{ $entregas->links('pagination::bootstrap-5') }}
+        </div>
+    @endif
 </div>
 
 {{-- Modal Ver Detalle de Entrega --}}
@@ -378,13 +379,15 @@
                   data-libros-url="{{ route('entregas.api.libros-por-grado') }}">
                 {{-- Paso 1: Buscar Estudiante --}}
                 <div>
-                    <h4 class="section-title">1. Seleccionar Estudiante</h4>
-                    <div class="search-wrapper" id="entrega-buscar-wrapper">
-                        <div class="position-relative">
-                            <i data-lucide="search" class="icon position-absolute text-slate-400" style="left: 0.75rem; top: 50%; transform: translateY(-50%);"></i>
-                            <input type="text" id="modal_buscar_est" class="form-control-app ps-4" placeholder="Buscar por DNI, nombres o apellidos..." autocomplete="off">
+                    <div id="modal_sec_buscar_est">
+                        <h4 class="section-title">1. Seleccionar Estudiante</h4>
+                        <div class="search-wrapper" id="entrega-buscar-wrapper">
+                            <div class="position-relative">
+                                <i data-lucide="search" class="icon position-absolute text-slate-400" style="left: 0.75rem; top: 50%; transform: translateY(-50%);"></i>
+                                <input type="text" id="modal_buscar_est" class="form-control-app ps-4" placeholder="Buscar por DNI, nombres o apellidos..." autocomplete="off">
+                            </div>
                         </div>
-                        <div id="modal_resultados_est" class="search-results d-none"></div>
+                        <div id="modal_resultados_est" class="seleccion-lista"></div>
                     </div>
                     <input type="hidden" name="id_estudiante" id="modal_id_estudiante">
                     <div id="modal_est_info" class="info-box d-none">
@@ -398,7 +401,7 @@
                                     <span>Nivel: <strong id="modal_lbl_nivel"></strong></span>
                                 </div>
                             </div>
-                            <button type="button" id="modal_btn_cambiar_est" class="btn btn-sm btn-outline-primary">Cambiar</button>
+                            <button type="button" id="modal_btn_cambiar_est" class="btn btn-sm btn-outline-light">Cambiar</button>
                         </div>
                         <div id="modal_alerta_entrega" class="alert alert-warning d-none mt-3 d-flex align-items-start gap-2 py-2 small">
                             <i data-lucide="alert-triangle" class="icon flex-shrink-0 mt-1"></i>
@@ -417,7 +420,22 @@
                         <i data-lucide="loader-2" class="icon spin mb-2"></i>
                         <div>Cargando libros...</div>
                     </div>
-                    <div id="modal_lista_libros" class="d-flex flex-column gap-2" style="max-height: 12rem; overflow-y: auto;"></div>
+                    <div class="table-responsive-app" style="max-height: 16rem; overflow-y: auto;">
+                        <table class="table table-app table-sm mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="text-center" style="width: 2.5rem;">#</th>
+                                    <th>Libro</th>
+                                    <th style="width: 30%;">Área</th>
+                                    <th class="text-center" style="width: 6rem;">Disp.</th>
+                                    <th class="text-center" style="width: 3rem;">
+                                        <i data-lucide="check-square" class="icon"></i>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="modal_lista_libros"></tbody>
+                        </table>
+                    </div>
                 </div>
 
                 {{-- Paso 3: Recepción --}}

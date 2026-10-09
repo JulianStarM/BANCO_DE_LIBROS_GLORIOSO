@@ -16,8 +16,8 @@
         </button>
     </div>
 
-    {{-- Filtros y tabla --}}
-    <div class="card-app">
+    {{-- Filtros --}}
+    <div class="card-app mb-3">
         <div class="card-header-base">
             <form id="filtroDevoluciones" method="GET" action="{{ route('devoluciones.index') }}">
                 <div class="row g-3">
@@ -49,8 +49,10 @@
                 </div>
             </form>
         </div>
+    </div>
 
-        <div class="table-responsive-app">
+    {{-- Tabla --}}
+    <div class="table-responsive-app">
             <table class="table table-app">
                 <thead>
                     <tr>
@@ -106,12 +108,11 @@
             </table>
         </div>
 
-        @if(isset($devoluciones) && $devoluciones->hasPages())
-            <div class="card-footer-base d-flex justify-content-center">
-                {{ $devoluciones->links('pagination::bootstrap-5') }}
-            </div>
-        @endif
-    </div>
+    @if(isset($devoluciones) && $devoluciones->hasPages())
+        <div class="mt-3">
+            {{ $devoluciones->links('pagination::bootstrap-5') }}
+        </div>
+    @endif
 </div>
 
 {{-- Modal Ver Detalle de Devolución --}}
@@ -331,13 +332,15 @@
                   data-pendientes-url="{{ route('devoluciones.api.pendientes') }}">
                 {{-- 1: Buscar Entrega --}}
                 <div>
-                    <h4 class="section-title">1. Seleccionar Entrega</h4>
-                    <div class="search-wrapper" id="dev-buscar-wrapper">
-                        <div class="position-relative">
-                            <i data-lucide="search" class="icon position-absolute text-slate-400" style="left: 0.75rem; top: 50%; transform: translateY(-50%);"></i>
-                            <input type="text" id="modal_dev_buscar" class="form-control-app ps-4" placeholder="Buscar por DNI o código de entrega..." autocomplete="off">
+                    <div id="modal_sec_buscar_ent">
+                        <h4 class="section-title">1. Seleccionar Entrega</h4>
+                        <div class="search-wrapper" id="dev-buscar-wrapper">
+                            <div class="position-relative">
+                                <i data-lucide="search" class="icon position-absolute text-slate-400" style="left: 0.75rem; top: 50%; transform: translateY(-50%);"></i>
+                                <input type="text" id="modal_dev_buscar" class="form-control-app ps-4" placeholder="Buscar por DNI o código de entrega..." autocomplete="off">
+                            </div>
                         </div>
-                        <div id="modal_dev_resultados" class="search-results d-none"></div>
+                        <div id="modal_dev_resultados" class="seleccion-lista"></div>
                     </div>
                     <input type="hidden" name="id_entrega" id="modal_id_entrega">
                     <div id="modal_dev_info" class="info-box d-none">
@@ -350,7 +353,7 @@
                                     <span>Fecha Entrega: <strong id="modal_dev_lbl_fecha"></strong></span>
                                 </div>
                             </div>
-                            <button type="button" id="modal_dev_btn_cambiar" class="btn btn-sm btn-outline-primary">Cambiar</button>
+                            <button type="button" id="modal_dev_btn_cambiar" class="btn btn-sm btn-outline-light">Cambiar</button>
                         </div>
                     </div>
                 </div>

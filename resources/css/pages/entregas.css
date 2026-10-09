@@ -1,8 +1,61 @@
-.section-title {
+/* Header compacto de entregas */
+.entregas-header-card {
+    padding: 1rem;
+}
+
+.entregas-header-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--color-slate-900);
+    margin: 0;
+}
+
+.entregas-header-subtitle {
+    font-size: var(--font-size-xs);
+    color: var(--color-slate-500);
+    margin: 0.25rem 0 0;
+}
+
+.entregas-stat-card {
+    padding: 0.625rem;
+}
+
+.entregas-stat-label {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--color-slate-500);
+    margin-bottom: 0.25rem;
+}
+
+.entregas-stat-value {
     font-size: 1rem;
     font-weight: 700;
     color: var(--color-slate-900);
-    margin-bottom: 1rem;
+    margin-bottom: 0;
+}
+
+.section-title {
+    font-size: var(--font-size-sm);
+    font-weight: 700;
+    color: var(--color-hospital-navy);
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
+}
+
+.section-title .badge-counter {
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: normal;
+    background-color: var(--color-hospital-primary-light);
+    color: var(--color-hospital-primary);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--border-radius-sm);
 }
 
 .search-wrapper {
@@ -11,7 +64,7 @@
 
 .info-label {
     font-size: var(--font-size-xs);
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: var(--color-slate-500);
@@ -19,10 +72,10 @@
 }
 
 .info-name {
-    font-size: 1.125rem;
+    font-size: 1rem;
     font-weight: 700;
-    color: var(--color-slate-900);
-    margin-bottom: 0.5rem;
+    color: var(--color-hospital-navy);
+    margin-bottom: 0.375rem;
 }
 
 .info-meta {
@@ -33,11 +86,11 @@
 .badge-counter {
     display: inline-flex;
     align-items: center;
-    padding: 0.35em 0.85em;
+    padding: 0.25em 0.75em;
     border-radius: 9999px;
-    background-color: var(--color-primary-light);
-    color: var(--color-primary);
-    font-size: var(--font-size-sm);
+    background-color: var(--color-hospital-primary-light);
+    color: var(--color-hospital-primary);
+    font-size: var(--font-size-xs);
     font-weight: 700;
 }
 
@@ -64,7 +117,7 @@
 }
 
 .result-item {
-    padding: 0.75rem 1rem;
+    padding: 0.625rem 0.875rem;
     cursor: pointer;
     border-bottom: 1px solid var(--border-color);
     transition: background-color var(--transition-fast);
@@ -75,13 +128,13 @@
 }
 
 .result-item:hover {
-    background-color: var(--color-slate-50);
+    background-color: var(--color-hospital-primary-light);
 }
 
 .result-title {
     font-size: var(--font-size-sm);
     font-weight: 600;
-    color: var(--color-slate-900);
+    color: var(--color-slate-800);
     margin-bottom: 0.125rem;
 }
 
@@ -91,246 +144,45 @@
 }
 
 .info-box {
-    padding: 1rem;
+    margin-top: 0.75rem;
+    padding: 0.875rem;
+    background-color: var(--color-hospital-navy-dark);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: var(--border-radius);
-    background-color: var(--color-primary-light);
-    border: 1px solid rgba(37, 99, 235, 0.15);
-}
-
-.radio-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-}
-
-.radio-card {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    background-color: #ffffff;
-    cursor: pointer;
-    transition: border-color var(--transition-fast), background-color var(--transition-fast);
-    flex: 1 1 auto;
-    min-width: 8rem;
-}
-
-.radio-card:hover {
-    border-color: var(--color-primary);
-    background-color: var(--color-primary-light);
-}
-
-.radio-card-input {
-    flex-shrink: 0;
-    width: 1.125rem;
-    height: 1.125rem;
-    accent-color: var(--color-primary);
-}
-
-.radio-card-body {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.radio-card-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    border-radius: 50%;
-    background-color: var(--color-primary-light);
-    color: var(--color-primary);
-}
-
-.radio-card-text {
-    font-size: var(--font-size-sm);
-    font-weight: 600;
-    color: var(--color-slate-900);
-}
-
-.delivery-card {
-    background-color: #ffffff;
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius-lg);
-    box-shadow: var(--shadow-sm);
-    overflow: hidden;
-}
-
-.delivery-header {
-    padding: 1.25rem;
-    border-bottom: 1px solid var(--border-color);
-    background-color: var(--color-slate-50);
-}
-
-.delivery-code {
-    font-family: monospace;
-    font-size: var(--font-size-sm);
-    font-weight: 600;
-    color: var(--color-primary);
-    background-color: var(--color-primary-light);
-    padding: 0.25rem 0.5rem;
-    border-radius: var(--border-radius-sm);
-}
-
-.delivery-student {
-    font-weight: 600;
-    color: var(--color-slate-900);
-}
-
-.delivery-meta {
-    font-size: var(--font-size-xs);
-    color: var(--color-slate-500);
-}
-
-.delivery-books {
-    padding: 1rem 1.25rem;
-}
-
-.delivery-book-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.75rem;
-    border-radius: var(--border-radius-sm);
-    background-color: var(--color-slate-50);
-    margin-bottom: 0.5rem;
-}
-
-.delivery-book-item:last-child {
-    margin-bottom: 0;
-}
-
-.delivery-summary {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
-    gap: 1rem;
-    padding: 1rem 1.25rem;
-    border-top: 1px solid var(--border-color);
-    background-color: var(--color-slate-50);
-}
-
-.delivery-summary-item {
-    text-align: center;
-}
-
-.delivery-summary-value {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--color-slate-900);
-    margin-bottom: 0;
-}
-
-.delivery-summary-label {
-    font-size: var(--font-size-xs);
-    color: var(--color-slate-500);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-/* Títulos de sección en formularios */
-.section-title {
-    font-size: var(--font-size-sm);
-    font-weight: 600;
-    color: var(--color-slate-800);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 0.5rem;
-    margin-bottom: 1rem;
-}
-
-.section-title .badge-counter {
-    font-size: var(--font-size-xs);
-    font-weight: 400;
-    text-transform: none;
-    letter-spacing: normal;
-    background-color: var(--color-slate-100);
-    color: var(--color-slate-500);
-    padding: 0.25rem 0.5rem;
-    border-radius: var(--border-radius-sm);
-}
-
-/* Dropdown de resultados de búsqueda */
-.search-wrapper {
-    position: relative;
-}
-
-.search-results {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    z-index: 10;
-    margin-top: 0.25rem;
-    background-color: #ffffff;
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow-lg);
-    max-height: 12rem;
-    overflow-y: auto;
-}
-
-.search-results .result-item {
-    padding: 0.75rem;
-    cursor: pointer;
-    border-bottom: 1px solid var(--border-color);
-    transition: background-color var(--transition-fast);
-}
-
-.search-results .result-item:last-child {
-    border-bottom: none;
-}
-
-.search-results .result-item:hover {
-    background-color: var(--color-slate-50);
-}
-
-.search-results .result-item .result-title {
-    font-weight: 500;
-    color: var(--color-slate-800);
-    font-size: var(--font-size-sm);
-}
-
-.search-results .result-item .result-meta {
-    font-size: var(--font-size-xs);
-    color: var(--color-slate-500);
-}
-
-.search-results .result-empty {
-    padding: 0.75rem;
-    font-size: var(--font-size-sm);
-    color: var(--color-slate-500);
-}
-
-/* Caja de información seleccionada */
-.info-box {
-    margin-top: 1rem;
-    padding: 1rem;
-    background-color: var(--color-primary-light);
-    border: 1px solid #bfdbfe;
-    border-radius: var(--border-radius);
+    color: #ffffff;
 }
 
 .info-box .info-label {
     font-size: var(--font-size-xs);
-    color: var(--color-slate-500);
+    color: rgba(255, 255, 255, 0.75);
     margin-bottom: 0.125rem;
 }
 
 .info-box .info-name {
     font-weight: 700;
-    color: var(--color-slate-800);
-    font-size: 1rem;
+    color: #ffffff;
+    font-size: var(--font-size-base);
     margin-bottom: 0.25rem;
 }
 
 .info-box .info-meta {
     font-size: var(--font-size-sm);
-    color: var(--color-slate-600);
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.info-box .info-meta strong {
+    color: #ffffff;
+}
+
+.info-box .btn-outline-light {
+    border-color: rgba(255, 255, 255, 0.4);
+    color: #ffffff;
+}
+
+.info-box .btn-outline-light:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+    border-color: #ffffff;
+    color: #ffffff;
 }
 
 /* Radio cards */
@@ -340,9 +192,16 @@
     gap: 0.75rem;
 }
 
+@media (max-width: 575.98px) {
+    .radio-group {
+        grid-template-columns: 1fr;
+    }
+}
+
 .radio-card {
     position: relative;
     cursor: pointer;
+    margin: 0;
 }
 
 .radio-card-input {
@@ -358,19 +217,20 @@
     gap: 0.75rem;
     padding: 0.75rem;
     border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius-sm);
     background-color: #ffffff;
     transition: border-color var(--transition-fast), background-color var(--transition-fast);
 }
 
 .radio-card:hover .radio-card-body {
     background-color: var(--color-slate-50);
+    border-color: var(--color-hospital-primary);
 }
 
 .radio-card-input:checked + .radio-card-body,
 .radio-card-input:focus:checked + .radio-card-body {
-    border-color: var(--color-primary);
-    background-color: var(--color-primary-light);
+    border-color: var(--color-hospital-primary);
+    background-color: var(--color-hospital-primary-light);
 }
 
 .radio-card-icon {
@@ -381,20 +241,24 @@
     height: 2rem;
     border-radius: 50%;
     background-color: #ffffff;
-    color: var(--color-primary);
+    color: var(--color-hospital-primary);
     box-shadow: var(--shadow-sm);
     transition: background-color var(--transition-fast), color var(--transition-fast);
 }
 
 .radio-card-input:checked + .radio-card-body .radio-card-icon {
-    background-color: var(--color-primary);
+    background-color: var(--color-hospital-primary);
     color: #ffffff;
 }
 
 .radio-card-text {
-    font-weight: 500;
+    font-weight: 600;
     color: var(--color-slate-800);
     font-size: var(--font-size-sm);
+}
+
+.radio-card-input:checked + .radio-card-body .radio-card-text {
+    color: var(--color-hospital-navy);
 }
 
 /* Formulario de entregas */
@@ -402,24 +266,185 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.75rem;
+    padding: 0.625rem 0.75rem;
     border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius-sm);
     background-color: #ffffff;
     cursor: pointer;
     transition: border-color var(--transition-fast), background-color var(--transition-fast);
 }
 
 .book-option:hover {
-    border-color: var(--color-primary);
-    background-color: var(--color-primary-light);
+    border-color: var(--color-hospital-primary);
+    background-color: var(--color-hospital-primary-light);
 }
 
 .book-option.selected {
-    border-color: var(--color-primary);
-    background-color: var(--color-primary-light);
+    border-color: var(--color-hospital-primary);
+    background-color: var(--color-hospital-primary-light);
 }
 
 .book-option input {
     flex-shrink: 0;
+    width: 1.125rem;
+    height: 1.125rem;
+    accent-color: var(--color-hospital-primary);
+}
+
+.delivery-card {
+    background-color: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.delivery-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--color-slate-50);
+}
+
+.delivery-code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    color: var(--color-hospital-primary);
+    background-color: var(--color-hospital-primary-light);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--border-radius-sm);
+    border: 1px solid #dbe4ee;
+}
+
+.delivery-student {
+    font-weight: 600;
+    color: var(--color-slate-800);
+    font-size: var(--font-size-sm);
+}
+
+.delivery-meta {
+    font-size: var(--font-size-xs);
+    color: var(--color-slate-500);
+}
+
+.delivery-books {
+    padding: 0.875rem 1.25rem;
+}
+
+.delivery-book-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.625rem;
+    border-radius: var(--border-radius-sm);
+    background-color: var(--color-slate-50);
+    margin-bottom: 0.5rem;
+    font-size: var(--font-size-sm);
+}
+
+.delivery-book-item:last-child {
+    margin-bottom: 0;
+}
+
+.delivery-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+    gap: 0.75rem;
+    padding: 0.875rem 1.25rem;
+    border-top: 1px solid var(--border-color);
+    background-color: var(--color-slate-50);
+}
+
+.delivery-summary-item {
+    text-align: center;
+}
+
+.delivery-summary-value {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--color-hospital-navy);
+    margin-bottom: 0;
+}
+
+.delivery-summary-label {
+    font-size: var(--font-size-xs);
+    color: var(--color-slate-500);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0;
+}
+
+/* Lista estática de selección debajo del buscador (entregas / devoluciones) */
+#modalNuevaEntrega .modal-panel,
+#modalNuevaDevolucion .modal-panel {
+    max-width: 56rem;
+}
+
+.seleccion-lista {
+    margin-top: 0.75rem;
+    max-height: 18rem;
+    overflow-y: auto;
+    background-color: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+}
+
+.seleccion-lista .seleccion-empty {
+    padding: 1rem;
+    font-size: var(--font-size-sm);
+    color: var(--color-slate-500);
+    text-align: center;
+}
+
+.seleccion-tabla-wrapper {
+    border-radius: var(--border-radius-sm);
+    overflow: hidden;
+}
+
+.seleccion-tabla {
+    font-size: var(--font-size-sm);
+}
+
+.seleccion-tabla tbody tr {
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+}
+
+.seleccion-tabla tbody tr:hover {
+    background-color: var(--color-hospital-primary-light);
+}
+
+.seleccion-tabla tbody tr.active {
+    background-color: var(--color-hospital-primary-light);
+}
+
+.seleccion-tabla tbody tr.active td {
+    box-shadow: inset 3px 0 0 0 var(--color-hospital-primary);
+}
+
+.seleccion-tabla tbody tr.seleccion-fila-entregado {
+    background-color: var(--color-slate-50);
+}
+
+.seleccion-tabla tbody tr.seleccion-fila-entregado:hover {
+    background-color: var(--color-slate-50);
+    cursor: default;
+}
+
+.seleccion-tabla .seleccionar-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+@media (max-width: 575.98px) {
+    #modalNuevaEntrega .modal-panel,
+    #modalNuevaDevolucion .modal-panel {
+        max-width: 100%;
+    }
+
+    .seleccion-lista {
+        max-height: 14rem;
+    }
 }

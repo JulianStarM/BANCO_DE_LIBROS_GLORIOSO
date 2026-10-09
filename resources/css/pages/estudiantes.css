@@ -1,5 +1,5 @@
 .page-header {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
 }
 
 .page-header-row {
@@ -18,11 +18,11 @@
 }
 
 .page-title {
-    font-size: 1.75rem;
+    font-size: 1.25rem;
     font-weight: 700;
-    color: var(--color-slate-900);
+    color: var(--color-hospital-navy);
     margin: 0;
-    letter-spacing: -0.025em;
+    letter-spacing: -0.01em;
 }
 
 .page-actions {
@@ -35,11 +35,11 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
-    padding: 1rem;
+    padding: 0.75rem;
     background-color: #ffffff;
     border: 1px solid var(--border-color);
-    border-radius: var(--border-radius-lg);
-    margin-bottom: 1.25rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 0.75rem;
     box-shadow: var(--shadow-sm);
 }
 
@@ -52,7 +52,7 @@
 .data-card {
     background-color: #ffffff;
     border: 1px solid var(--border-color);
-    border-radius: var(--border-radius-lg);
+    border-radius: var(--border-radius);
     box-shadow: var(--shadow-sm);
     overflow: hidden;
 }
@@ -61,19 +61,20 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 1.75rem;
+    height: 1.75rem;
     border-radius: 50%;
-    background-color: var(--color-primary-light);
-    color: var(--color-primary);
+    background-color: var(--color-hospital-primary-light);
+    color: var(--color-hospital-primary);
     font-weight: 600;
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-xs);
 }
 
 .student-name {
     font-weight: 600;
-    color: var(--color-slate-900);
-    margin-bottom: 0.125rem;
+    color: var(--color-slate-800);
+    font-size: var(--font-size-sm);
+    margin-bottom: 0.0625rem;
 }
 
 .student-meta {
@@ -85,29 +86,34 @@
 .status-badge {
     display: inline-flex;
     align-items: center;
-    padding: 0.25em 0.75em;
+    padding: 0.2em 0.55em;
     border-radius: 9999px;
     font-size: var(--font-size-xs);
     font-weight: 600;
+    border: 1px solid transparent;
 }
 
 .status-badge.activo {
     background-color: var(--color-success-light);
-    color: #047857;
+    color: #166534;
+    border-color: #bbf7d0;
 }
 
 .status-badge.retirado,
 .status-badge.inactivo {
     background-color: var(--color-slate-100);
     color: var(--color-slate-600);
+    border-color: var(--border-color);
 }
 
 .status-badge.trasladado {
     background-color: var(--color-warning-light);
-    color: #b45309;
+    color: #92400e;
+    border-color: #fde68a;
 }
 
 .status-badge.egresado {
     background-color: var(--color-info-light);
-    color: #0369a1;
+    color: #075985;
+    border-color: #bae6fd;
 }

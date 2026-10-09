@@ -15,10 +15,10 @@
 </div>
 
 <div class="card-app p-4">
-    <form action="{{ route('libros.store') }}" method="POST">
+    <form action="{{ route('libros.store') }}" method="POST" class="js-form-crear-libro">
         @csrf
 
-        @include('libros.form')
+        @include('libros.form', ['modo' => 'crear'])
 
         <div class="d-flex justify-content-end gap-2 pt-3 mt-4" style="border-top: 1px solid var(--border-color);">
             <a href="{{ route('libros.index') }}" class="btn-app btn-app-secondary">

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Banco de Libros') | GSC Puno</title>
+    <title>@yield('title', 'Banco de Libros') | I.E. Glorioso San Carlos</title>
 
     <link rel="shortcut icon" href="{{ asset('favicon.ico') }}?v=2" type="image/x-icon">
     <link rel="icon" href="{{ asset('favicon.ico') }}?v=2" type="image/x-icon">
@@ -30,13 +30,13 @@
             display: flex;
             align-items: center;
             gap: 0.75rem;
-            padding: 0.875rem 1.25rem;
-            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
             color: #ffffff;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.15);
-            font-size: 0.9375rem;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.12);
+            font-size: 0.875rem;
             font-weight: 500;
-            max-width: 28rem;
+            max-width: 24rem;
             transform: translateX(150%);
             transition: transform 400ms cubic-bezier(0.16, 1, 0.3, 1);
             pointer-events: auto;
@@ -44,10 +44,10 @@
         .toast-inline.show {
             transform: translateX(0);
         }
-        .toast-inline.success { background-color: #10b981; }
-        .toast-inline.error { background-color: #f43f5e; }
-        .toast-inline.warning { background-color: #f59e0b; }
-        .toast-inline.info { background-color: #0ea5e9; }
+        .toast-inline.success { background-color: #16A34A; }
+        .toast-inline.error { background-color: #E65345; }
+        .toast-inline.warning { background-color: #F59E0B; }
+        .toast-inline.info { background-color: #0EA5E9; }
         .toast-inline .icon {
             width: 1.25rem;
             height: 1.25rem;
@@ -119,31 +119,55 @@
             }, 4000);
         };
 
-        // Mostrar toasts persistidos desde localStorage (después de reload AJAX)
-        const persistedToast = localStorage.getItem('app_toast');
-        if (persistedToast) {
-            try {
-                const data = JSON.parse(persistedToast);
-                window.showToast(data.message, data.type || 'success');
-            } catch (e) {}
-            localStorage.removeItem('app_toast');
-        }
+        window.displayAppNotification = function (message, type) {
+            type = type || 'success';
+            if (window.showFeedbackModal) {
+                const titles = {
+                    success: '¡Operación exitosa!',
+                    error: 'Ocurrió un error',
+                    warning: 'Advertencia',
+                    info: 'Información',
+                };
+                window.showFeedbackModal({
+                    type: type,
+                    title: titles[type] || 'Información',
+                    message: message,
+                    autoClose: type === 'success' ? 2500 : 0,
+                });
+            } else {
+                window.showToast(message, type);
+            }
+        };
 
-        // Mostrar toasts de session flash (desde redirect PHP)
-        @if (session('success'))
-            window.showToast(@json(session('success')), 'success');
-        @endif
-        @if (session('error'))
-            window.showToast(@json(session('error')), 'error');
-        @endif
-        @if (session('warning'))
-            window.showToast(@json(session('warning')), 'warning');
-        @endif
-        @if (session('info'))
-            window.showToast(@json(session('info')), 'info');
-        @endif
+        document.addEventListener('DOMContentLoaded', function () {
+            // Mostrar notificaciones persistidas desde localStorage (después de reload AJAX)
+            const persistedToast = localStorage.getItem('app_toast');
+            if (persistedToast) {
+                try {
+                    const data = JSON.parse(persistedToast);
+                    window.displayAppNotification(data.message, data.type || 'success');
+                } catch (e) {}
+                localStorage.removeItem('app_toast');
+            }
+
+            // Mostrar notificaciones de session flash (desde redirect PHP)
+            @if (session('success'))
+                window.displayAppNotification(@json(session('success')), 'success');
+            @endif
+            @if (session('error'))
+                window.displayAppNotification(@json(session('error')), 'error');
+            @endif
+            @if (session('warning'))
+                window.displayAppNotification(@json(session('warning')), 'warning');
+            @endif
+            @if (session('info'))
+                window.displayAppNotification(@json(session('info')), 'info');
+            @endif
+        });
     })();
 </script>
+
+@include('components.feedback-modal')
 
 @stack('scripts')
 

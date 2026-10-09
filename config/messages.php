@@ -63,8 +63,13 @@ return [
         ],
         'destroy' => [
             'success' => 'Libro eliminado del catálogo.',
-            'error' => 'No se puede eliminar el libro porque tiene entregas registradas.',
+            'error' => 'No se puede eliminar el libro porque tiene registros vinculados.',
             'warning' => 'El libro tiene ejemplares en circulación. Asegúrese de que todos hayan sido devueltos.',
+        ],
+        'force_destroy' => [
+            'success' => 'Libro y todo su historial vinculado fueron eliminados permanentemente.',
+            'error' => 'No se pudo completar la eliminación en cascada. Contacte al administrador.',
+            'warning' => 'Esta acción eliminará el historial de inventario, entregas y devoluciones del libro.',
         ],
         'not_found' => [
             'error' => 'Libro no encontrado en el catálogo.',
@@ -113,6 +118,11 @@ return [
             'success' => 'Entrega :codigo actualizada correctamente.',
             'error' => 'No se pudo actualizar la entrega.',
             'warning' => 'Al cambiar el estado a "anulada", los libros volverán al inventario.',
+        ],
+        'codigo' => [
+            'success' => 'Código de entrega actualizado correctamente.',
+            'error' => 'No se pudo actualizar el código de entrega.',
+            'warning' => 'El código de entrega identifica una operación. Modifíquelo solo en casos excepcionales.',
         ],
         'destroy' => [
             'success' => 'Entrega eliminada y stock de libros restaurado.',

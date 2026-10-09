@@ -12,6 +12,8 @@
     </div>
 @endif
 
+@php($libro = $libro ?? null)
+
 <div class="row g-4">
     <!-- Información Principal -->
     <div class="col-12 col-md-6">
@@ -19,14 +21,21 @@
             Información Principal
         </h3>
 
+        @php($modo = $modo ?? (isset($libro) ? 'editar' : 'crear'))
         <div class="form-group-app">
-            <label class="form-label-app">Código del Libro *</label>
-            <input type="text" name="codigo_libro" value="{{ old('codigo_libro', $libro->codigo_libro ?? '') }}" class="form-control-app" required>
+            <label class="form-label-app">Código del Libro</label>
+            @if($modo === 'editar')
+                <input type="text" name="codigo_libro" value="{{ old('codigo_libro', $libro->codigo_libro ?? '') }}"
+                       class="form-control-app" readonly>
+            @else
+                <input type="text" id="vistaCodigoLibro" class="form-control-app" placeholder="Se generará automáticamente" readonly>
+            @endif
         </div>
 
         <div class="form-group-app">
             <label class="form-label-app">Nombre / Título *</label>
-            <input type="text" name="nombre" value="{{ old('nombre', $libro->nombre ?? '') }}" class="form-control-app" required>
+            <input type="text" name="nombre" value="{{ old('nombre', $libro->nombre ?? '') }}"
+                   class="form-control-app js-uppercase" required oninput="this.value = this.value.toUpperCase()">
         </div>
 
         <div class="row g-3">
@@ -34,37 +43,56 @@
                 <label class="form-label-app">Tipo de Material *</label>
                 <select name="tipo_material" class="form-select-app" required>
                     <option value="">Seleccione...</option>
-                    <option value="libro" @selected(old('tipo_material', $libro->tipo_material ?? '') == 'libro')>Libro</option>
-                    <option value="cuaderno_trabajo" @selected(old('tipo_material', $libro->tipo_material ?? '') == 'cuaderno_trabajo')>Cuaderno de Trabajo</option>
-                    <option value="guia_docente" @selected(old('tipo_material', $libro->tipo_material ?? '') == 'guia_docente')>Guía Docente</option>
-                    <option value="material_complementario" @selected(old('tipo_material', $libro->tipo_material ?? '') == 'material_complementario')>Material Complementario</option>
+                    @foreach($tiposMaterial ?? [] as $tipo)
+                        <option value="{{ $tipo }}" @selected(old('tipo_material', $libro->tipo_material ?? '') == $tipo)>
+                            {{ ucfirst(str_replace('_', ' ', $tipo)) }}
+                        </option>
+                    @endforeach
                 </select>
             </div>
 
             <div class="col-6 form-group-app">
                 <label class="form-label-app">Área *</label>
-                <input type="text" name="area" value="{{ old('area', $libro->area ?? '') }}" class="form-control-app" required>
+                @php($areaSeleccionada = old('area', $libro->area ?? ''))
+                <select name="area" class="form-select-app" required
+                        onchange="const nombre = this.form.elements['nombre']; if(nombre) nombre.value = this.value;">
+                    <option value="">Seleccione...</option>
+                    @if($areaSeleccionada && ! in_array($areaSeleccionada, $areas ?? [], true))
+                        <option value="{{ $areaSeleccionada }}" selected>{{ $areaSeleccionada }}</option>
+                    @endif
+                    @foreach($areas ?? [] as $area)
+                        <option value="{{ $area }}" @selected($areaSeleccionada === $area)>{{ $area }}</option>
+                    @endforeach
+                </select>
             </div>
         </div>
 
         <div class="row g-3">
             <div class="col-6 form-group-app">
                 <label class="form-label-app">Nivel *</label>
+                @php($nivelSeleccionado = old('nivel', $libro->nivel ?? ''))
                 <select name="nivel" class="form-select-app" required>
                     <option value="">Seleccione...</option>
-                    <option value="inicial" @selected(old('nivel', $libro->nivel ?? '') == 'inicial')>Inicial</option>
-                    <option value="primaria" @selected(old('nivel', $libro->nivel ?? 'primaria') == 'primaria')>Primaria</option>
-                    <option value="secundaria" @selected(old('nivel', $libro->nivel ?? '') == 'secundaria')>Secundaria</option>
+                    @if($nivelSeleccionado && ! in_array($nivelSeleccionado, $niveles ?? [], true))
+                        <option value="{{ $nivelSeleccionado }}" selected>{{ ucfirst($nivelSeleccionado) }}</option>
+                    @endif
+                    @foreach($niveles ?? [] as $nivel)
+                        <option value="{{ $nivel }}" @selected($nivelSeleccionado === $nivel)>{{ ucfirst($nivel) }}</option>
+                    @endforeach
                 </select>
             </div>
 
             <div class="col-6 form-group-app">
                 <label class="form-label-app">Grado *</label>
+                @php($gradoSeleccionado = old('grado', $libro->grado ?? ''))
                 <select name="grado" class="form-select-app" required>
                     <option value="">Seleccione...</option>
-                    @for($i=1; $i<=6; $i++)
-                        <option value="{{ $i }}" @selected(old('grado', $libro->grado ?? '') == $i)>{{ $i }}°</option>
-                    @endfor
+                    @if($gradoSeleccionado && ! in_array((string) $gradoSeleccionado, $grados ?? [], true))
+                        <option value="{{ $gradoSeleccionado }}" selected>{{ $gradoSeleccionado }}°</option>
+                    @endif
+                    @foreach($grados ?? [] as $grado)
+                        <option value="{{ $grado }}" @selected((string) $gradoSeleccionado === (string) $grado)>{{ $grado }}°</option>
+                    @endforeach
                 </select>
             </div>
         </div>
@@ -79,7 +107,16 @@
         <div class="row g-3">
             <div class="col-6 form-group-app">
                 <label class="form-label-app">Editorial</label>
-                <input type="text" name="editorial" value="{{ old('editorial', $libro->editorial ?? '') }}" class="form-control-app">
+                @php($editorialSeleccionada = old('editorial', $libro->editorial ?? ''))
+                <select name="editorial" class="form-select-app">
+                    <option value="">Seleccione...</option>
+                    @if($editorialSeleccionada && ! in_array($editorialSeleccionada, $editoriales ?? [], true))
+                        <option value="{{ $editorialSeleccionada }}" selected>{{ $editorialSeleccionada }}</option>
+                    @endif
+                    @foreach($editoriales ?? [] as $editorial)
+                        <option value="{{ $editorial }}" @selected($editorialSeleccionada === $editorial)>{{ $editorial }}</option>
+                    @endforeach
+                </select>
             </div>
 
             <div class="col-6 form-group-app">

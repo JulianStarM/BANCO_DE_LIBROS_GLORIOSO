@@ -98,11 +98,11 @@
                     <table class="items-table">
                         <thead>
                             <tr>
-                                <th style="width: 8%;" class="text-center">N°</th>
-                                <th style="width: 18%;">Código del libro</th>
-                                <th style="width: 38%;">Nombre del libro</th>
+                                <th style="width: 5%;" class="text-center">N°</th>
+                                <th style="width: 16%;">Código del libro</th>
+                                <th style="width: 45%;">Nombre del libro</th>
                                 <th style="width: 14%;" class="text-center">Estado</th>
-                                <th style="width: 22%;">Observaciones</th>
+                                <th style="width: 20%;">Observaciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -125,24 +125,37 @@
             </div>
 
             {{-- Resumen numérico --}}
-            <div class="summary-box">
-                <div class="summary-item">
-                    <span class="number">{{ $devolucion->total_devueltos ?? 0 }}</span>
-                    <span class="label">Devueltos</span>
-                </div>
-                <div class="summary-item">
-                    <span class="number">{{ $devolucion->total_no_devueltos ?? 0 }}</span>
-                    <span class="label">No devueltos</span>
-                </div>
-                <div class="summary-item">
-                    <span class="number">{{ $devolucion->total_deficientes ?? 0 }}</span>
-                    <span class="label">Deteriorados</span>
-                </div>
-                <div class="summary-item">
-                    <span class="number">{{ $devolucion->total_perdidos ?? 0 }}</span>
-                    <span class="label">Perdidos</span>
-                </div>
-            </div>
+            <table class="summary-table">
+                <thead>
+                    <tr>
+                        <th>Concepto</th>
+                        <th>Cantidad</th>
+                        <th>Detalle / Indicador</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="concepto">Devueltos</td>
+                        <td class="cantidad">{{ $devolucion->total_devueltos ?? 0 }}</td>
+                        <td class="detalle">Textos devueltos en buen estado o con deterioro leve.</td>
+                    </tr>
+                    <tr>
+                        <td class="concepto">No devueltos</td>
+                        <td class="cantidad">{{ $devolucion->total_no_devueltos ?? 0 }}</td>
+                        <td class="detalle">Textos que aún no fueron devueltos por el estudiante.</td>
+                    </tr>
+                    <tr>
+                        <td class="concepto">Deteriorados</td>
+                        <td class="cantidad">{{ $devolucion->total_deficientes ?? 0 }}</td>
+                        <td class="detalle">Textos devueltos con daños perceptibles que afectan su uso.</td>
+                    </tr>
+                    <tr>
+                        <td class="concepto">Perdidos</td>
+                        <td class="cantidad">{{ $devolucion->total_perdidos ?? 0 }}</td>
+                        <td class="detalle">Textos no devueltos y declarados como perdidos.</td>
+                    </tr>
+                </tbody>
+            </table>
 
             {{-- Nota legal --}}
             <div class="legal-note">
@@ -164,7 +177,7 @@
             </div>
 
             {{-- Sello --}}
-            <div style="text-align: center; margin-top: 4mm;">
+            <div style="text-align: center; margin-top: 2mm;">
                 <p style="font-size: 7.5pt; color: #555; margin: 0;">Espacio para sello institucional</p>
             </div>
 

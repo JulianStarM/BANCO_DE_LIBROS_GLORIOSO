@@ -1,31 +1,31 @@
 .card-base {
     background-color: #ffffff;
     border: 1px solid var(--border-color);
-    border-radius: var(--border-radius-lg);
+    border-radius: var(--border-radius);
     box-shadow: var(--shadow-sm);
     overflow: hidden;
 }
 
 .card-header-base {
-    padding: 1.25rem;
+    padding: 0.75rem 1rem;
     border-bottom: 1px solid var(--border-color);
     background-color: var(--color-slate-50);
 }
 
 .card-body-base {
-    padding: 1.25rem;
+    padding: 1rem;
 }
 
 .card-footer-base {
-    padding: 1rem 1.25rem;
+    padding: 0.625rem 1rem;
     border-top: 1px solid var(--border-color);
     background-color: var(--color-slate-50);
 }
 
 .card-title-base {
-    font-size: 1.125rem;
+    font-size: 1rem;
     font-weight: 700;
-    color: var(--color-slate-900);
+    color: var(--color-hospital-navy);
     margin: 0;
 }
 
@@ -33,7 +33,7 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 1rem;
+    padding: 0.875rem;
     border-radius: var(--border-radius);
     background-color: #ffffff;
     border: 1px solid var(--border-color);
@@ -43,14 +43,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 2.25rem;
+    height: 2.25rem;
     border-radius: var(--border-radius-sm);
     flex-shrink: 0;
 }
 
 .stat-sm-value {
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     font-weight: 700;
     color: var(--color-slate-900);
     line-height: 1;
@@ -62,4 +62,5 @@
     color: var(--color-slate-500);
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    margin: 0;
 }

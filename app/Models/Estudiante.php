@@ -137,8 +137,8 @@ class Estudiante extends Model
     public function tieneEntregasPendientes(): bool
     {
         return $this->entregas()
-            ->where('estado', 'completada')
-            ->whereDoesntHave('devolucion')
+            ->completadas()
+            ->conPendientes()
             ->exists();
     }
 }

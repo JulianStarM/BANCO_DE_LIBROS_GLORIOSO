@@ -112,17 +112,25 @@ window.submitModalForm = async function (formId, url, modalId, onSuccess) {
         if (! contentType.includes('application/json')) {
             const text = await response.text();
             console.error('[submitModalForm] Respuesta no JSON:', text.substring(0, 500));
-            window.showToast('Error del servidor. Verifique la consola para más detalles.', 'error');
+            if (window.showFeedbackModal) {
+                window.showFeedbackModal({
+                    type: 'error',
+                    title: 'Error del servidor',
+                    message: 'Verifique la consola para más detalles.',
+                });
+            }
             return;
         }
 
         const data = await response.json();
 
         if (data.success) {
-            window.showToast(data.message, 'success');
             window.closeModal(modalId);
             form.reset();
-            if (onSuccess) onSuccess(data);
+
+            if (onSuccess) {
+                onSuccess(data);
+            }
         } else {
             if (data.errors) {
                 Object.entries(data.errors).forEach(([field, messages]) => {
@@ -143,11 +151,28 @@ window.submitModalForm = async function (formId, url, modalId, onSuccess) {
                     }
                 });
             }
-            window.showToast(data.message || 'Error al procesar.', 'error');
+
+            if (window.showFeedbackModal) {
+                window.showFeedbackModal({
+                    type: 'error',
+                    title: 'No se pudo procesar',
+                    message: data.message || 'Ocurrió un error al procesar la operación.',
+                });
+            } else {
+                window.showToast(data.message || 'Error al procesar.', 'error');
+            }
         }
     } catch (err) {
         console.error('[submitModalForm] Error:', err);
-        window.showToast('Error de conexión. Inténtalo de nuevo.', 'error');
+        if (window.showFeedbackModal) {
+            window.showFeedbackModal({
+                type: 'error',
+                title: 'Error de conexión',
+                message: 'Inténtalo de nuevo.',
+            });
+        } else {
+            window.showToast('Error de conexión. Inténtalo de nuevo.', 'error');
+        }
     } finally {
         if (submitBtn) {
             submitBtn.disabled = false;

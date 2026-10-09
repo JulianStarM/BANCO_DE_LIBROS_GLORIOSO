@@ -56,30 +56,38 @@
                 <i data-lucide="users" class="icon"></i>
                 <span class="sidebar-link-text">Usuarios</span>
             </a>
+
+            {{-- Configuraciones con submenu --}}
+            <div class="sidebar-submenu">
+                <button type="button"
+                        class="sidebar-submenu-toggle {{ request()->routeIs('configuraciones.*') ? 'active' : '' }}"
+                        data-bs-toggle="collapse"
+                        aria-expanded="{{ request()->routeIs('configuraciones.*') ? 'true' : 'false' }}"
+                        onclick="toggleConfigSubmenu(this)">
+                    <i data-lucide="settings" class="icon"></i>
+                    <span class="sidebar-link-text">Configuraciones</span>
+                    <i data-lucide="chevron-down" class="icon icon-chevron"></i>
+                </button>
+                <div class="sidebar-submenu-items {{ request()->routeIs('configuraciones.*') ? 'show' : '' }}">
+                    <a href="{{ route('configuraciones.index') }}" class="sidebar-submenu-link {{ request()->routeIs('configuraciones.index') ? 'active' : '' }}">
+                        <span class="sidebar-link-text">General</span>
+                    </a>
+                    <a href="{{ route('configuraciones.estudiantes') }}" class="sidebar-submenu-link {{ request()->routeIs('configuraciones.estudiantes') ? 'active' : '' }}">
+                        <span class="sidebar-link-text">Estudiantes</span>
+                    </a>
+                </div>
+            </div>
             @endif
         </nav>
     </div>
 
-    <!-- Sidebar Footer -->
-    <div class="sidebar-footer">
-        <div class="sidebar-user">
-            <div class="sidebar-user-avatar">
-                {{ strtoupper(substr(auth()->user()->nombre ?? 'U', 0, 1)) }}
-            </div>
-            <div class="sidebar-user-info">
-                <p class="sidebar-user-name">{{ auth()->user()->nombre ?? 'Administrador GSC' }}</p>
-                <p class="sidebar-user-role">{{ auth()->user()->rol ?? 'Administrador' }}</p>
-            </div>
-        </div>
-        <form method="POST" action="{{ route('logout') }}" class="sidebar-logout-form">
-            @csrf
-            <button type="submit" class="sidebar-logout">
-                <i data-lucide="log-out" class="icon"></i>
-                <span class="sidebar-logout-text">Cerrar sesión</span>
-            </button>
-            <button type="submit" data-tooltip="Cerrar sesión" class="sidebar-logout-collapsed">
-                <i data-lucide="log-out" class="icon"></i>
-            </button>
-        </form>
-    </div>
 </aside>
+
+<script>
+    function toggleConfigSubmenu(btn) {
+        const items = btn.nextElementSibling;
+        const isExpanded = btn.getAttribute('aria-expanded') === 'true';
+        btn.setAttribute('aria-expanded', !isExpanded);
+        items.classList.toggle('show');
+    }
+</script>

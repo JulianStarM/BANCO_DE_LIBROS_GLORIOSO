@@ -11,6 +11,14 @@
                     <i data-lucide="file-check" class="icon"></i>
                 </div>
                 Entrega: {{ $entrega->codigo_general }}
+                @if(auth()->user()?->esAdmin())
+                    <button type="button"
+                            class="btn-action btn-action-secondary"
+                            onclick="openModal('modalEditarCodigoEntrega')"
+                            title="Editar código de entrega">
+                        <i data-lucide="pencil" class="icon" style="width: 0.875rem; height: 0.875rem;"></i>
+                    </button>
+                @endif
             </h2>
             <p class="small text-slate-500 mt-1 mb-0">Registrada el
                 {{ \Carbon\Carbon::parse($entrega->fecha_entrega)->format('d/m/Y') }} a las {{ $entrega->hora_entrega }}</p>
@@ -159,4 +167,28 @@
             </div>
         </div>
     </div>
+
+    @if(auth()->user()?->esAdmin())
+        <x-modal id="modalEditarCodigoEntrega" title="Editar Código de Entrega" size="md">
+            <form method="POST" action="{{ route('entregas.codigo.update', $entrega) }}">
+                @csrf
+                @method('PUT')
+                <div class="form-group-app">
+                    <label class="form-label-app">Código de Entrega</label>
+                    <input type="text" name="codigo_general" class="form-control-app"
+                           value="{{ old('codigo_general', $entrega->codigo_general) }}" required>
+                    <p class="form-text-app mt-2 mb-0">Este código identifica una operación de entrega. Modifíquelo solo en casos excepcionales y evite duplicados.</p>
+                </div>
+                <div class="d-flex justify-content-end gap-2 pt-3 mt-4" style="border-top: 1px solid var(--border-color);">
+                    <button type="button" class="btn-app btn-app-secondary" onclick="closeModal('modalEditarCodigoEntrega')">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn-app btn-app-primary">
+                        <i data-lucide="save" class="icon"></i>
+                        Guardar Código
+                    </button>
+                </div>
+            </form>
+        </x-modal>
+    @endif
 @endsection

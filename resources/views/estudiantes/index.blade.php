@@ -4,6 +4,12 @@
 @section('page-title', 'Gestión de estudiantes')
 
 @section('content')
+@php
+$v = $configEst['campos_visibles'] ?? [];
+$o = $configEst['campos_obligatorios'] ?? [];
+$req = fn($k) => ($o[$k] ?? false) ? ' *' : '';
+$attrReq = fn($k) => ($o[$k] ?? false) ? ' required' : '';
+@endphp
 <div class="page-header">
     <div class="page-header-row">
         <div>
@@ -38,20 +44,30 @@
             <label class="form-label-app">Nivel</label>
             <select name="nivel" class="form-select-app">
                 <option value="">Todos</option>
-                @foreach(['Inicial','Primaria','Secundaria'] as $n)
-                    <option value="{{ strtolower($n) }}" @selected($nivel === strtolower($n) || $nivel === $n)>{{ $n }}</option>
+                @foreach($configEst['niveles'] as $n)
+                    <option value="{{ $n }}" @selected($nivel === $n)>{{ ucfirst($n) }}</option>
                 @endforeach
             </select>
         </div>
 
         <div class="col-md-2">
             <label class="form-label-app">Grado</label>
-            <input type="text" name="grado" value="{{ $grado }}" class="form-control-app" placeholder="Ej. 4">
+            <select name="grado" class="form-select-app">
+                <option value="">Todos</option>
+                @foreach($configEst['grados'] as $g)
+                    <option value="{{ $g }}" @selected($grado == $g)>{{ $g }}°</option>
+                @endforeach
+            </select>
         </div>
 
         <div class="col-md-2">
             <label class="form-label-app">Sección</label>
-            <input type="text" name="seccion" value="{{ $seccion }}" class="form-control-app" placeholder="Ej. A">
+            <select name="seccion" class="form-select-app">
+                <option value="">Todos</option>
+                @foreach($configEst['secciones'] as $s)
+                    <option value="{{ $s }}" @selected($seccion === $s)>{{ $s }}</option>
+                @endforeach
+            </select>
         </div>
 
         <div class="col-md-2">
@@ -64,9 +80,8 @@
 </div>
 
 <!-- Table -->
-<div class="data-card">
-    <div class="table-responsive-app">
-        <table class="table-app">
+<div class="table-responsive-app">
+    <table class="table-app">
             <thead>
                 <tr>
                     <th>Código / DNI</th>
@@ -180,141 +195,200 @@
     </div>
 
     @if($estudiantes->hasPages())
-        <div class="card-footer-base d-flex justify-content-center">
-            {{ $estudiantes->links() }}
+        <div class="mt-3">
+            {{ $estudiantes->links('pagination::bootstrap-5') }}
         </div>
     @endif
-</div>
 
 {{-- Modal Ver Estudiante --}}
-@component('components.modal', ['id' => 'modalVerEstudiante', 'title' => 'Perfil del Estudiante', 'size' => 'md'])
-    <div class="row g-3">
-        <div class="col-md-6">
-            <p class="small text-slate-500 mb-0">Código</p>
-            <p class="fw-semibold text-slate-800 mb-0" id="verCodigo">—</p>
+@component('components.modal', ['id' => 'modalVerEstudiante', 'title' => 'Perfil del Estudiante', 'subtitle' => 'Información personal y académica', 'icon' => 'user', 'size' => 'md'])
+    <div class="detail-panel">
+        <div class="detail-section">
+            <h4 class="detail-section-title">Información personal</h4>
+            <div class="detail-grid">
+                <div class="detail-field">
+                    <span class="detail-label">Código</span>
+                    <span class="detail-value" id="verCodigo">—</span>
+                </div>
+                <div class="detail-field">
+                    <span class="detail-label">DNI</span>
+                    <span class="detail-value" id="verDni">—</span>
+                </div>
+                <div class="detail-field">
+                    <span class="detail-label">Apellidos</span>
+                    <span class="detail-value" id="verApellidos">—</span>
+                </div>
+                <div class="detail-field">
+                    <span class="detail-label">Nombres</span>
+                    <span class="detail-value" id="verNombres">—</span>
+                </div>
+                <div class="detail-field">
+                    <span class="detail-label">Sexo</span>
+                    <span class="detail-value" id="verSexo">—</span>
+                </div>
+                <div class="detail-field">
+                    <span class="detail-label">Estado</span>
+                    <span class="detail-value" id="verEstadoBadge"><span class="status-badge inactivo">—</span></span>
+                </div>
+            </div>
         </div>
-        <div class="col-md-6">
-            <p class="small text-slate-500 mb-0">DNI</p>
-            <p class="fw-semibold text-slate-800 mb-0" id="verDni">—</p>
-        </div>
-        <div class="col-md-6">
-            <p class="small text-slate-500 mb-0">Apellidos</p>
-            <p class="fw-semibold text-slate-800 mb-0" id="verApellidos">—</p>
-        </div>
-        <div class="col-md-6">
-            <p class="small text-slate-500 mb-0">Nombres</p>
-            <p class="fw-semibold text-slate-800 mb-0" id="verNombres">—</p>
-        </div>
-        <div class="col-md-4">
-            <p class="small text-slate-500 mb-0">Sexo</p>
-            <p class="fw-semibold text-slate-800 mb-0" id="verSexo">—</p>
-        </div>
-        <div class="col-md-4">
-            <p class="small text-slate-500 mb-0">Estado</p>
-            <p class="fw-semibold text-slate-800 mb-0" id="verEstado">—</p>
-        </div>
-        <div class="col-md-4">
-            <p class="small text-slate-500 mb-0">Nivel</p>
-            <p class="fw-semibold text-slate-800 mb-0 text-capitalize" id="verNivel">—</p>
-        </div>
-        <div class="col-md-3">
-            <p class="small text-slate-500 mb-0">Grado</p>
-            <p class="fw-semibold text-slate-800 mb-0" id="verGrado">—</p>
-        </div>
-        <div class="col-md-3">
-            <p class="small text-slate-500 mb-0">Sección</p>
-            <p class="fw-semibold text-slate-800 mb-0" id="verSeccion">—</p>
-        </div>
-        <div class="col-md-3">
-            <p class="small text-slate-500 mb-0">Turno</p>
-            <p class="fw-semibold text-slate-800 mb-0 text-capitalize" id="verTurno">—</p>
-        </div>
-        <div class="col-md-6">
-            <p class="small text-slate-500 mb-0">Dirección</p>
-            <p class="fw-semibold text-slate-800 mb-0" id="verDireccion">—</p>
-        </div>
-        <div class="col-md-6">
-            <p class="small text-slate-500 mb-0">Teléfono</p>
-            <p class="fw-semibold text-slate-800 mb-0" id="verTelefono">—</p>
+
+        <div class="detail-section">
+            <h4 class="detail-section-title">Información académica</h4>
+            <div class="detail-grid detail-grid-3">
+                <div class="detail-field">
+                    <span class="detail-label">Nivel</span>
+                    <span class="detail-value text-capitalize" id="verNivel">—</span>
+                </div>
+                <div class="detail-field">
+                    <span class="detail-label">Grado</span>
+                    <span class="detail-value" id="verGrado">—</span>
+                </div>
+                <div class="detail-field">
+                    <span class="detail-label">Sección</span>
+                    <span class="detail-value" id="verSeccion">—</span>
+                </div>
+            </div>
+            <div class="detail-grid">
+                <div class="detail-field">
+                    <span class="detail-label">Turno</span>
+                    <span class="detail-value text-capitalize" id="verTurno">—</span>
+                </div>
+                <div class="detail-field">
+                    <span class="detail-label">Dirección</span>
+                    <span class="detail-value" id="verDireccion">—</span>
+                </div>
+                <div class="detail-field full-width">
+                    <span class="detail-label">Teléfono</span>
+                    <span class="detail-value" id="verTelefono">—</span>
+                </div>
+            </div>
         </div>
     </div>
+
+    @slot('footer')
+        <button type="button" onclick="closeModal('modalVerEstudiante')" class="btn-app btn-app-secondary">Cerrar</button>
+    @endslot
 @endcomponent
 
 {{-- Modal Editar Estudiante --}}
-@component('components.modal', ['id' => 'modalEditarEstudiante', 'title' => 'Editar Estudiante', 'size' => 'lg'])
+@component('components.modal', ['id' => 'modalEditarEstudiante', 'title' => 'Editar Estudiante', 'icon' => 'pencil', 'size' => 'lg'])
     <form id="formEditarEstudiante" method="POST">
         @csrf
         @method('PUT')
         <div class="row g-3">
-            <div class="col-md-6">
-                <label class="form-label-app">Código</label>
-                <input type="text" name="codigo_estudiante" id="editCodigoEstudiante" class="form-control-app">
-            </div>
-            <div class="col-md-6">
-                <label class="form-label-app">DNI *</label>
-                <input type="text" name="dni" id="editDni" class="form-control-app" required maxlength="15">
-            </div>
+            @if($v['codigo_estudiante'] ?? true)
+                <div class="col-md-6">
+                    <label class="form-label-app">Código{{ $req('codigo_estudiante') }}</label>
+                    <input type="text" name="codigo_estudiante" id="editCodigoEstudiante" class="form-control-app"{{ $attrReq('codigo_estudiante') }}>
+                </div>
+            @endif
 
-            <div class="col-md-6">
-                <label class="form-label-app">Nombres *</label>
-                <input type="text" name="nombres" id="editNombres" class="form-control-app" required>
-            </div>
-            <div class="col-md-6">
-                <label class="form-label-app">Apellidos *</label>
-                <input type="text" name="apellidos" id="editApellidos" class="form-control-app" required>
-            </div>
+            @if($v['dni'] ?? true)
+                <div class="col-md-6">
+                    <label class="form-label-app">DNI{{ $req('dni') }}</label>
+                    <input type="text" name="dni" id="editDni" class="form-control-app" maxlength="15"{{ $attrReq('dni') }}>
+                </div>
+            @endif
 
-            <div class="col-6 col-md-2">
-                <label class="form-label-app">Sexo *</label>
-                <select name="sexo" id="editSexo" class="form-select-app" required>
-                    <option value="M">Masculino</option>
-                    <option value="F">Femenino</option>
-                </select>
-            </div>
-            <div class="col-6 col-md-2">
-                <label class="form-label-app">Nivel *</label>
-                <select name="nivel" id="editNivel" class="form-select-app" required>
-                    <option value="secundaria">Secundaria</option>
-                    <option value="primaria">Primaria</option>
-                    <option value="inicial">Inicial</option>
-                </select>
-            </div>
-            <div class="col-6 col-md-2">
-                <label class="form-label-app">Grado *</label>
-                <input type="number" name="grado" id="editGrado" class="form-control-app" required min="1" max="6">
-            </div>
-            <div class="col-6 col-md-2">
-                <label class="form-label-app">Sección *</label>
-                <input type="text" name="seccion" id="editSeccion" class="form-control-app" required maxlength="5">
-            </div>
-            <div class="col-6 col-md-2">
-                <label class="form-label-app">Turno</label>
-                <select name="turno" id="editTurno" class="form-select-app">
-                    <option value="">--</option>
-                    <option value="mañana">Mañana</option>
-                    <option value="tarde">Tarde</option>
-                </select>
-            </div>
+            @if($v['nombres'] ?? true)
+                <div class="col-md-6">
+                    <label class="form-label-app">Nombres{{ $req('nombres') }}</label>
+                    <input type="text" name="nombres" id="editNombres" class="form-control-app"{{ $attrReq('nombres') }}>
+                </div>
+            @endif
 
-            <div class="col-md-4">
-                <label class="form-label-app">Dirección</label>
-                <input type="text" name="direccion" id="editDireccion" class="form-control-app">
-            </div>
-            <div class="col-md-4">
-                <label class="form-label-app">Teléfono</label>
-                <input type="text" name="telefono" id="editTelefono" class="form-control-app">
-            </div>
-            <div class="col-md-4">
-                <label class="form-label-app">Año Escolar (ID)</label>
-                <input type="number" name="id_anio_escolar" id="editIdAnioEscolar" class="form-control-app">
-            </div>
+            @if($v['apellidos'] ?? true)
+                <div class="col-md-6">
+                    <label class="form-label-app">Apellidos{{ $req('apellidos') }}</label>
+                    <input type="text" name="apellidos" id="editApellidos" class="form-control-app"{{ $attrReq('apellidos') }}>
+                </div>
+            @endif
 
-            <div class="col-12">
-                <label class="form-check-app">
-                    <input type="checkbox" name="estado" id="editEstado" value="1" class="form-check-input-app">
-                    <span class="form-check-label-app">Estudiante activo</span>
-                </label>
-            </div>
+            @if($v['sexo'] ?? true)
+                <div class="col-md-4">
+                    <label class="form-label-app">Sexo{{ $req('sexo') }}</label>
+                    <select name="sexo" id="editSexo" class="form-select-app"{{ $attrReq('sexo') }}>
+                        <option value="M">Masculino</option>
+                        <option value="F">Femenino</option>
+                    </select>
+                </div>
+            @endif
+
+            @if($v['nivel'] ?? true)
+                <div class="col-md-4">
+                    <label class="form-label-app">Nivel{{ $req('nivel') }}</label>
+                    <select name="nivel" id="editNivel" class="form-select-app"{{ $attrReq('nivel') }}>
+                        @foreach($configEst['niveles'] as $n)
+                            <option value="{{ $n }}">{{ ucfirst($n) }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            @endif
+
+            @if($v['grado'] ?? true)
+                <div class="col-md-4">
+                    <label class="form-label-app">Grado{{ $req('grado') }}</label>
+                    <select name="grado" id="editGrado" class="form-select-app"{{ $attrReq('grado') }}>
+                        @foreach($configEst['grados'] as $g)
+                            <option value="{{ $g }}">{{ $g }}°</option>
+                        @endforeach
+                    </select>
+                </div>
+            @endif
+
+            @if($v['seccion'] ?? true)
+                <div class="col-md-4">
+                    <label class="form-label-app">Sección{{ $req('seccion') }}</label>
+                    <select name="seccion" id="editSeccion" class="form-select-app"{{ $attrReq('seccion') }}>
+                        @foreach($configEst['secciones'] as $s)
+                            <option value="{{ $s }}">{{ $s }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            @endif
+
+            @if($v['turno'] ?? true)
+                <div class="col-md-4">
+                    <label class="form-label-app">Turno{{ $req('turno') }}</label>
+                    <select name="turno" id="editTurno" class="form-select-app"{{ $attrReq('turno') }}>
+                        <option value="">--</option>
+                        @foreach($configEst['turnos'] as $t)
+                            <option value="{{ $t }}">{{ ucfirst($t) }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            @endif
+
+            @if($v['id_anio_escolar'] ?? true)
+                <div class="col-md-4">
+                    <label class="form-label-app">Año Escolar (ID){{ $req('id_anio_escolar') }}</label>
+                    <input type="number" name="id_anio_escolar" id="editIdAnioEscolar" class="form-control-app"{{ $attrReq('id_anio_escolar') }}>
+                </div>
+            @endif
+
+            @if($v['direccion'] ?? true)
+                <div class="col-md-6">
+                    <label class="form-label-app">Dirección{{ $req('direccion') }}</label>
+                    <input type="text" name="direccion" id="editDireccion" class="form-control-app"{{ $attrReq('direccion') }}>
+                </div>
+            @endif
+
+            @if($v['telefono'] ?? true)
+                <div class="col-md-6">
+                    <label class="form-label-app">Teléfono{{ $req('telefono') }}</label>
+                    <input type="text" name="telefono" id="editTelefono" class="form-control-app"{{ $attrReq('telefono') }}>
+                </div>
+            @endif
+
+            @if($v['estado'] ?? true)
+                <div class="col-12">
+                    <label class="form-check-app">
+                        <input type="checkbox" name="estado" id="editEstado" value="1" checked class="form-check-input-app">
+                        <span class="form-check-label-app">Estudiante activo</span>
+                    </label>
+                </div>
+            @endif
         </div>
 
         <div class="d-flex justify-content-end gap-2 pt-3 border-top mt-3">
@@ -326,117 +400,133 @@
     </form>
 @endcomponent
 
-{{-- Modal confirmación eliminar --}}
-@component('components.modal', ['id' => 'modalEliminarEstudiante', 'title' => 'Confirmar eliminación', 'size' => 'md'])
-    <p class="text-slate-700 mb-0">¿Está seguro de eliminar al estudiante <strong id="lblNombreEliminar" class="text-slate-900"></strong>?</p>
-    <p class="small text-slate-500 mt-2 mb-0">Esta acción no se puede deshacer si el estudiante no tiene registros vinculados.</p>
-    @slot('footer')
-        <form id="formEliminarEstudiante" method="POST" class="d-flex gap-2 w-100 justify-content-end">
-            @csrf
-            @method('DELETE')
-            <button type="button" onclick="closeModal('modalEliminarEstudiante')" class="btn-app btn-app-secondary">Cancelar</button>
-            <button type="submit" class="btn-app btn-app-danger">
-                <i data-lucide="trash-2" class="icon"></i> Sí, eliminar
-            </button>
-        </form>
-    @endslot
-@endcomponent
+{{-- Formularios ocultos para eliminación --}}
+<form id="formEliminarEstudiante" method="POST" class="d-none">
+    @csrf
+    @method('DELETE')
+</form>
 
-{{-- Modal forzar eliminación (cuando hay FK constraints) --}}
-@component('components.modal', ['id' => 'modalForzarEliminar', 'title' => 'No se puede eliminar', 'size' => 'md'])
-    <div class="alert alert-warning d-flex align-items-start gap-2 small">
-        <i data-lucide="alert-triangle" class="icon flex-shrink-0 mt-1"></i>
-        <div>
-            <p class="fw-semibold mb-1">Este estudiante tiene registros vinculados</p>
-            <p class="mb-0" id="lblErrorForzar"></p>
-        </div>
-    </div>
-    <p class="small text-danger fw-semibold mt-2 mb-0">Si continúa, se eliminarán TODOS los registros relacionados de forma permanente.</p>
-    @slot('footer')
-        <form id="formForzarEliminar" method="POST" class="d-flex gap-2 w-100 justify-content-end">
-            @csrf
-            @method('DELETE')
-            <input type="hidden" name="force" value="1">
-            <button type="button" onclick="closeModal('modalForzarEliminar')" class="btn-app btn-app-secondary">Cancelar</button>
-            <button type="submit" class="btn-app btn-app-danger">
-                <i data-lucide="trash-2" class="icon"></i> Sí, eliminar todo
-            </button>
-        </form>
-    @endslot
-@endcomponent
+<form id="formForzarEliminar" method="POST" class="d-none">
+    @csrf
+    @method('DELETE')
+    <input type="hidden" name="force" value="1">
+</form>
 
 @component('components.modal', ['id' => 'modalNuevoEstudiante', 'title' => 'Nuevo Estudiante', 'size' => 'lg'])
     <form id="formNuevoEstudiante" data-action="{{ route('estudiantes.api.store') }}">
         <div class="row g-3">
+            @if($v['codigo_estudiante'] ?? true)
             <div class="col-md-6">
-                <label class="form-label-app">Código</label>
-                <input type="text" name="codigo_estudiante" class="form-control-app">
+                <label class="form-label-app">Código{{ $req('codigo_estudiante') }}</label>
+                <input type="text" name="codigo_estudiante" class="form-control-app"{{ $attrReq('codigo_estudiante') }}>
             </div>
-            <div class="col-md-6">
-                <label class="form-label-app">DNI *</label>
-                <input type="text" name="dni" class="form-control-app" required maxlength="15">
-            </div>
+            @endif
 
+            @if($v['dni'] ?? true)
             <div class="col-md-6">
-                <label class="form-label-app">Nombres *</label>
-                <input type="text" name="nombres" class="form-control-app" required>
+                <label class="form-label-app">DNI{{ $req('dni') }}</label>
+                <input type="text" name="dni" class="form-control-app" maxlength="15"{{ $attrReq('dni') }}>
             </div>
-            <div class="col-md-6">
-                <label class="form-label-app">Apellidos *</label>
-                <input type="text" name="apellidos" class="form-control-app" required>
-            </div>
+            @endif
 
+            @if($v['nombres'] ?? true)
+            <div class="col-md-6">
+                <label class="form-label-app">Nombres{{ $req('nombres') }}</label>
+                <input type="text" name="nombres" class="form-control-app"{{ $attrReq('nombres') }}>
+            </div>
+            @endif
+
+            @if($v['apellidos'] ?? true)
+            <div class="col-md-6">
+                <label class="form-label-app">Apellidos{{ $req('apellidos') }}</label>
+                <input type="text" name="apellidos" class="form-control-app"{{ $attrReq('apellidos') }}>
+            </div>
+            @endif
+
+            @if($v['sexo'] ?? true)
             <div class="col-6 col-md-2">
-                <label class="form-label-app">Sexo *</label>
-                <select name="sexo" class="form-select-app" required>
+                <label class="form-label-app">Sexo{{ $req('sexo') }}</label>
+                <select name="sexo" class="form-select-app"{{ $attrReq('sexo') }}>
                     <option value="M">Masculino</option>
                     <option value="F">Femenino</option>
                 </select>
             </div>
+            @endif
+
+            @if($v['nivel'] ?? true)
             <div class="col-6 col-md-2">
-                <label class="form-label-app">Nivel *</label>
-                <select name="nivel" class="form-select-app" required>
-                    <option value="secundaria">Secundaria</option>
-                    <option value="primaria">Primaria</option>
-                    <option value="inicial">Inicial</option>
+                <label class="form-label-app">Nivel{{ $req('nivel') }}</label>
+                <select name="nivel" class="form-select-app"{{ $attrReq('nivel') }}>
+                    @foreach($configEst['niveles'] as $n)
+                        <option value="{{ $n }}">{{ ucfirst($n) }}</option>
+                    @endforeach
                 </select>
             </div>
+            @endif
+
+            @if($v['grado'] ?? true)
             <div class="col-6 col-md-2">
-                <label class="form-label-app">Grado *</label>
-                <input type="number" name="grado" class="form-control-app" required min="1" max="6">
+                <label class="form-label-app">Grado{{ $req('grado') }}</label>
+                <select name="grado" class="form-select-app"{{ $attrReq('grado') }}>
+                    @foreach($configEst['grados'] as $g)
+                        <option value="{{ $g }}">{{ $g }}°</option>
+                    @endforeach
+                </select>
             </div>
+            @endif
+
+            @if($v['seccion'] ?? true)
             <div class="col-6 col-md-2">
-                <label class="form-label-app">Sección *</label>
-                <input type="text" name="seccion" class="form-control-app" required maxlength="5" placeholder="A">
+                <label class="form-label-app">Sección{{ $req('seccion') }}</label>
+                <select name="seccion" class="form-select-app"{{ $attrReq('seccion') }}>
+                    @foreach($configEst['secciones'] as $s)
+                        <option value="{{ $s }}">{{ $s }}</option>
+                    @endforeach
+                </select>
             </div>
+            @endif
+
+            @if($v['turno'] ?? true)
             <div class="col-6 col-md-2">
-                <label class="form-label-app">Turno</label>
-                <select name="turno" class="form-select-app">
+                <label class="form-label-app">Turno{{ $req('turno') }}</label>
+                <select name="turno" class="form-select-app"{{ $attrReq('turno') }}>
                     <option value="">--</option>
-                    <option value="mañana">Mañana</option>
-                    <option value="tarde">Tarde</option>
+                    @foreach($configEst['turnos'] as $t)
+                        <option value="{{ $t }}">{{ ucfirst($t) }}</option>
+                    @endforeach
                 </select>
             </div>
+            @endif
 
+            @if($v['direccion'] ?? true)
             <div class="col-md-4">
-                <label class="form-label-app">Dirección</label>
-                <input type="text" name="direccion" class="form-control-app">
+                <label class="form-label-app">Dirección{{ $req('direccion') }}</label>
+                <input type="text" name="direccion" class="form-control-app"{{ $attrReq('direccion') }}>
             </div>
-            <div class="col-md-4">
-                <label class="form-label-app">Teléfono</label>
-                <input type="text" name="telefono" class="form-control-app">
-            </div>
-            <div class="col-md-4">
-                <label class="form-label-app">Año Escolar (ID)</label>
-                <input type="number" name="id_anio_escolar" class="form-control-app" value="1">
-            </div>
+            @endif
 
+            @if($v['telefono'] ?? true)
+            <div class="col-md-4">
+                <label class="form-label-app">Teléfono{{ $req('telefono') }}</label>
+                <input type="text" name="telefono" class="form-control-app"{{ $attrReq('telefono') }}>
+            </div>
+            @endif
+
+            @if($v['id_anio_escolar'] ?? true)
+            <div class="col-md-4">
+                <label class="form-label-app">Año Escolar (ID){{ $req('id_anio_escolar') }}</label>
+                <input type="number" name="id_anio_escolar" class="form-control-app" value="1"{{ $attrReq('id_anio_escolar') }}>
+            </div>
+            @endif
+
+            @if($v['estado'] ?? true)
             <div class="col-12">
                 <label class="form-check-app">
                     <input type="checkbox" name="estado" value="1" checked class="form-check-input-app">
                     <span class="form-check-label-app">Estudiante activo</span>
                 </label>
             </div>
+            @endif
         </div>
 
         <div class="d-flex justify-content-end gap-2 pt-3 border-top mt-3">
@@ -456,7 +546,21 @@
         document.getElementById('verApellidos').textContent = est.apellidos ?? '—';
         document.getElementById('verNombres').textContent = est.nombres ?? '—';
         document.getElementById('verSexo').textContent = est.sexo === 'M' ? 'Masculino' : (est.sexo === 'F' ? 'Femenino' : '—');
-        document.getElementById('verEstado').textContent = (est.estado === 'activo' || est.estado == 1) ? 'Activo' : (est.estado ? est.estado.charAt(0).toUpperCase() + est.estado.slice(1) : 'Inactivo');
+
+        const estadoBadge = document.getElementById('verEstadoBadge');
+        const estadoText = (est.estado === 'activo' || est.estado == 1) ? 'Activo' : (est.estado ? est.estado.charAt(0).toUpperCase() + est.estado.slice(1) : 'Inactivo');
+        let estadoClass = 'inactivo';
+        if (est.estado === 'activo' || est.estado == 1) {
+            estadoClass = 'activo';
+        } else if (est.estado === 'retirado') {
+            estadoClass = 'retirado';
+        } else if (est.estado === 'trasladado') {
+            estadoClass = 'trasladado';
+        } else if (est.estado === 'egresado') {
+            estadoClass = 'egresado';
+        }
+        estadoBadge.innerHTML = '<span class="status-badge ' + estadoClass + '">' + estadoText + '</span>';
+
         document.getElementById('verNivel').textContent = est.nivel ?? '—';
         document.getElementById('verGrado').textContent = est.grado ?? '—';
         document.getElementById('verSeccion').textContent = est.seccion ?? '—';
@@ -485,16 +589,32 @@
     }
 
     function abrirModalEliminar(id, nombre) {
-        document.getElementById('lblNombreEliminar').textContent = nombre;
-        document.getElementById('formEliminarEstudiante').action = `/estudiantes/${id}`;
-        openModal('modalEliminarEstudiante');
+        const form = document.getElementById('formEliminarEstudiante');
+        form.action = `/estudiantes/${id}`;
+
+        window.showConfirmModal({
+            title: '¿Eliminar estudiante?',
+            message: `¿Está seguro de eliminar al estudiante ${nombre}? Esta acción no se puede deshacer si no tiene registros vinculados.`,
+            confirmText: 'Sí, eliminar',
+            cancelText: 'Cancelar',
+            onConfirm: () => form.submit(),
+        });
     }
 
     @if(session('error') && session('estudiante_para_forzar'))
         document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('lblErrorForzar').innerText = @json(str_replace("\n", "\n", session('error')));
-            document.getElementById('formForzarEliminar').action = `/estudiantes/{{ session('estudiante_para_forzar') }}`;
-            openModal('modalForzarEliminar');
+            const form = document.getElementById('formForzarEliminar');
+            form.action = `/estudiantes/{{ session('estudiante_para_forzar') }}`;
+            const mensaje = @json(str_replace("\n", "\n", session('error')));
+
+            window.showFeedbackModal({
+                type: 'warning',
+                title: 'No se puede eliminar',
+                message: `Este estudiante tiene registros vinculados. ${mensaje} Si continúa, se eliminarán TODOS los registros relacionados de forma permanente.`,
+                confirmText: 'Sí, eliminar todo',
+                cancelText: 'Cancelar',
+                onConfirm: () => form.submit(),
+            });
         });
     @endif
 

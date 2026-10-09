@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class DetalleEntrega extends Model
 {
@@ -42,5 +44,41 @@ class DetalleEntrega extends Model
     public function detalleDevolucion(): BelongsTo
     {
         return $this->belongsTo(DetalleDevolucion::class, 'id', 'id_detalle_entrega');
+    }
+
+    public function devolucionesDetalle(): HasMany
+    {
+        return $this->hasMany(DetalleDevolucion::class, 'id_detalle_entrega');
+    }
+
+    /**
+     * Cantidad de ejemplares devueltos (excluyendo los marcados como no devueltos).
+     */
+    public function cantidadDevuelta(): int
+    {
+        return $this->devolucionesDetalle()
+            ->where('estado_libro', '!=', 'no_devuelto')
+            ->count();
+    }
+
+    /**
+     * Determina si aún falta devolver algún ejemplar.
+     */
+    public function estaPendiente(): bool
+    {
+        return $this->cantidadDevuelta() < $this->cantidad;
+    }
+
+    /**
+     * Scope: detalles de entrega que aún tienen ejemplares pendientes.
+     *
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
+    public function scopePendientes($query)
+    {
+        return $query->whereDoesntHave('devolucionesDetalle', function ($q) {
+            $q->where('estado_libro', '!=', 'no_devuelto');
+        });
     }
 }

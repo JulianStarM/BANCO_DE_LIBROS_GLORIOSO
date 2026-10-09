@@ -1,6 +1,6 @@
 {{-- Reusable modal component --}}
 {{-- Usage: @include('components.modal', ['id' => 'miModal', 'title' => 'Titulo', 'size' => 'lg']) --}}
-@props(['id' => 'modal', 'title' => '', 'size' => 'lg'])
+@props(['id' => 'modal', 'title' => '', 'size' => 'lg', 'icon' => null, 'subtitle' => null])
 
 @php
     $sizeClass = match($size) {
@@ -20,7 +20,17 @@
     <div class="modal-panel">
         <div class="modal-header">
             <h3 class="modal-title" id="{{ $id }}-title">
-                {{ $title }}
+                @if($icon)
+                    <span class="modal-title-icon">
+                        <i data-lucide="{{ $icon }}" class="icon"></i>
+                    </span>
+                @endif
+                <span class="modal-title-text">
+                    {{ $title }}
+                    @if($subtitle)
+                        <span class="modal-subtitle">{{ $subtitle }}</span>
+                    @endif
+                </span>
             </h3>
             <button type="button" onclick="closeModal('{{ $id }}')" class="modal-close" aria-label="Cerrar">
                 <i data-lucide="x" class="icon"></i>

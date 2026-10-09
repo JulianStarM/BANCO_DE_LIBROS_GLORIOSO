@@ -16,7 +16,7 @@
     </div>
 
     <div class="col-md-4 text-md-end mt-3 mt-md-0">
-        <button type="button" onclick="openModal('modalNuevoLibro')" class="btn-app btn-app-primary">
+        <button type="button" onclick="abrirModalNuevoLibro()" class="btn-app btn-app-primary">
             <i data-lucide="plus" class="icon"></i>
             Nuevo Libro
         </button>
@@ -24,46 +24,51 @@
 </div>
 
 <!-- Filtros -->
-<div class="card-app p-4 mb-4">
-    <form method="GET" action="{{ route('libros.index') }}">
-        <div class="row g-3 align-items-end">
-            <div class="col-12 col-sm-6 col-lg-3">
-                <label class="form-label-app">Buscar</label>
-                <div class="position-relative">
-                    <span class="position-absolute top-50 start-0 translate-middle-y ms-3 text-slate-400">
-                        <i data-lucide="search" class="icon"></i>
-                    </span>
-                    <input type="text" name="buscar" value="{{ request('buscar') }}" class="form-control-app ps-5" placeholder="Nombre, código o área...">
-                </div>
+<div class="filter-bar mb-4">
+    <form method="GET" action="{{ route('libros.index') }}" class="row g-3 align-items-end w-100">
+        <div class="col-lg-4">
+            <label class="form-label-app">Buscar</label>
+            <div class="position-relative">
+                <span class="position-absolute top-50 start-0 translate-middle-y ms-3 text-slate-400">
+                    <i data-lucide="search" class="icon"></i>
+                </span>
+                <input type="text" name="buscar" value="{{ request('buscar') }}" class="form-control-app ps-5" placeholder="Nombre, código o área...">
             </div>
-            <div class="col-12 col-sm-6 col-lg-3">
-                <label class="form-label-app">Área</label>
-                <select name="area" class="form-select-app">
-                    <option value="">Todas las áreas</option>
-                    @foreach($areas as $area)
-                        <option value="{{ $area }}" {{ request('area') == $area ? 'selected' : '' }}>{{ $area }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-12 col-sm-6 col-lg-3">
-                <label class="form-label-app">Grado</label>
-                <select name="grado" class="form-select-app">
-                    <option value="">Todos los grados</option>
-                    @for($i=1; $i<=6; $i++)
-                        <option value="{{ $i }}" {{ request('grado') == $i ? 'selected' : '' }}>{{ $i }}° Grado</option>
-                    @endfor
-                </select>
-            </div>
-            <div class="col-12 col-sm-6 col-lg-3 d-flex gap-2">
-                <button type="submit" class="btn-app btn-app-light flex-fill">
-                    Filtrar
-                </button>
-                @if(request()->anyFilled(['buscar', 'area', 'grado']))
-                    <a href="{{ route('libros.index') }}" class="btn-app btn-app-icon btn-app-light" title="Limpiar filtros">
-                        <i data-lucide="x" class="icon"></i>
-                    </a>
-                @endif
-            </div>
+        </div>
+        <div class="col-lg-2">
+            <label class="form-label-app">Área</label>
+            <select name="area" class="form-select-app">
+                <option value="">Todas las áreas</option>
+                @foreach($areas as $area)
+                    <option value="{{ $area }}" {{ request('area') == $area ? 'selected' : '' }}>{{ $area }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="col-lg-2">
+            <label class="form-label-app">Nivel</label>
+            <select name="nivel" class="form-select-app">
+                <option value="">Todos los niveles</option>
+                @foreach($niveles as $nivel)
+                    <option value="{{ $nivel }}" {{ request('nivel') == $nivel ? 'selected' : '' }}>{{ ucfirst($nivel) }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="col-lg-2">
+            <label class="form-label-app">Grado</label>
+            <select name="grado" class="form-select-app">
+                <option value="">Todos los grados</option>
+                @foreach($grados as $grado)
+                    <option value="{{ $grado }}" {{ request('grado') == $grado ? 'selected' : '' }}>{{ $grado }}° Grado</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="col-lg-2">
+            <button type="submit" class="btn-app btn-app-secondary w-100">
+                Filtrar
+            </button>
+        </div>
+        <div class="col-lg-2">
+            <a href="{{ route('libros.index') }}" class="btn-app btn-app-light w-100">Limpiar</a>
         </div>
     </form>
 </div>
@@ -180,6 +185,17 @@
                                     ]) }})">
                                 <i data-lucide="pencil" class="icon"></i>
                             </button>
+                            <form action="{{ route('libros.destroy', $libro) }}" method="POST" class="d-inline"
+                                  data-confirm="true"
+                                  data-confirm-title="¿Eliminar libro?"
+                                  data-confirm-message="El libro {{ $libro->nombre }} será eliminado junto con todo su historial de inventario, entregas y devoluciones."
+                                  data-confirm-text="Eliminar">
+                                @csrf @method('DELETE')
+                                <input type="hidden" name="force" value="1">
+                                <button type="submit" class="btn-action btn-action-danger" title="Eliminar">
+                                    <i data-lucide="trash-2" class="icon"></i>
+                                </button>
+                            </form>
                         </div>
                     </td>
                 </tr>
@@ -207,76 +223,101 @@
 @endif
 
 {{-- Modal Ver Libro --}}
-@component('components.modal', ['id' => 'modalVerLibro', 'title' => 'Detalle del Material', 'size' => 'md'])
-    <div class="row g-3">
-        <div class="col-md-6">
-            <p class="small text-slate-500 mb-0">Código</p>
-            <p class="fw-semibold text-slate-800 mb-0" id="verCodigoLibro">—</p>
+@component('components.modal', ['id' => 'modalVerLibro', 'title' => 'Detalle del Material', 'subtitle' => 'Información del libro', 'icon' => 'book', 'size' => 'md'])
+    <div class="detail-panel">
+        <div class="detail-section">
+            <h4 class="detail-section-title">Información del material</h4>
+            <div class="detail-grid">
+                <div class="detail-field">
+                    <span class="detail-label">Código</span>
+                    <span class="detail-value" id="verCodigoLibro">—</span>
+                </div>
+                <div class="detail-field">
+                    <span class="detail-label">Estado</span>
+                    <span class="detail-value" id="verEstadoLibroBadge"><span class="book-status descontinuado">—</span></span>
+                </div>
+            </div>
+            <div class="detail-grid">
+                <div class="detail-field full-width">
+                    <span class="detail-label">Nombre / Título</span>
+                    <span class="detail-value" id="verNombreLibro">—</span>
+                </div>
+            </div>
+            <div class="detail-grid">
+                <div class="detail-field">
+                    <span class="detail-label">Tipo de material</span>
+                    <span class="detail-value text-capitalize" id="verTipoMaterial">—</span>
+                </div>
+                <div class="detail-field">
+                    <span class="detail-label">Área</span>
+                    <span class="detail-value" id="verArea">—</span>
+                </div>
+            </div>
         </div>
-        <div class="col-md-6">
-            <p class="small text-slate-500 mb-0">Estado</p>
-            <p class="fw-semibold text-slate-800 mb-0" id="verEstadoLibro">—</p>
+
+        <div class="detail-section">
+            <h4 class="detail-section-title">Información académica</h4>
+            <div class="detail-grid detail-grid-3">
+                <div class="detail-field">
+                    <span class="detail-label">Nivel</span>
+                    <span class="detail-value text-capitalize" id="verNivelLibro">—</span>
+                </div>
+                <div class="detail-field">
+                    <span class="detail-label">Grado</span>
+                    <span class="detail-value" id="verGradoLibro">—</span>
+                </div>
+                <div class="detail-field">
+                    <span class="detail-label">Año edición</span>
+                    <span class="detail-value" id="verAnioEdicion">—</span>
+                </div>
+            </div>
+            <div class="detail-grid">
+                <div class="detail-field full-width">
+                    <span class="detail-label">Editorial</span>
+                    <span class="detail-value" id="verEditorial">—</span>
+                </div>
+            </div>
         </div>
-        <div class="col-12">
-            <p class="small text-slate-500 mb-0">Nombre / Título</p>
-            <p class="fw-semibold text-slate-800 mb-0" id="verNombreLibro">—</p>
+
+        <div class="detail-section">
+            <h4 class="detail-section-title">Observaciones</h4>
+            <div class="detail-grid">
+                <div class="detail-field full-width">
+                    <span class="detail-value" id="verObservacionesLibro">—</span>
+                </div>
+            </div>
         </div>
-        <div class="col-md-6">
-            <p class="small text-slate-500 mb-0">Tipo de material</p>
-            <p class="fw-semibold text-slate-800 mb-0 text-capitalize" id="verTipoMaterial">—</p>
-        </div>
-        <div class="col-md-6">
-            <p class="small text-slate-500 mb-0">Área</p>
-            <p class="fw-semibold text-slate-800 mb-0" id="verArea">—</p>
-        </div>
-        <div class="col-md-4">
-            <p class="small text-slate-500 mb-0">Nivel</p>
-            <p class="fw-semibold text-slate-800 mb-0 text-capitalize" id="verNivelLibro">—</p>
-        </div>
-        <div class="col-md-4">
-            <p class="small text-slate-500 mb-0">Grado</p>
-            <p class="fw-semibold text-slate-800 mb-0" id="verGradoLibro">—</p>
-        </div>
-        <div class="col-md-4">
-            <p class="small text-slate-500 mb-0">Año edición</p>
-            <p class="fw-semibold text-slate-800 mb-0" id="verAnioEdicion">—</p>
-        </div>
-        <div class="col-md-6">
-            <p class="small text-slate-500 mb-0">Editorial</p>
-            <p class="fw-semibold text-slate-800 mb-0" id="verEditorial">—</p>
-        </div>
-        <div class="col-md-6">
-            <p class="small text-slate-500 mb-0">Observaciones</p>
-            <p class="fw-semibold text-slate-800 mb-0" id="verObservacionesLibro">—</p>
-        </div>
-        <div class="col-12">
-            <div class="card-app p-3 bg-slate-50">
-                <p class="small fw-semibold text-slate-700 mb-2">Inventario</p>
-                <div class="row g-2 small">
-                    <div class="col-6 col-md-3">
-                        <span class="text-slate-500">Total:</span>
-                        <span class="fw-semibold text-slate-800" id="verCantidadTotal">—</span>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <span class="text-slate-500">Disponible:</span>
-                        <span class="fw-semibold text-slate-800" id="verCantidadDisponible">—</span>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <span class="text-slate-500">Entregado:</span>
-                        <span class="fw-semibold text-slate-800" id="verCantidadEntregada">—</span>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <span class="text-slate-500">Devuelto:</span>
-                        <span class="fw-semibold text-slate-800" id="verCantidadDevuelta">—</span>
-                    </div>
+
+        <div class="detail-section">
+            <h4 class="detail-section-title">Inventario</h4>
+            <div class="detail-stat-grid">
+                <div class="detail-stat-card detail-stat-total">
+                    <span class="detail-stat-label">Total</span>
+                    <span class="detail-stat-value" id="verCantidadTotal">—</span>
+                </div>
+                <div class="detail-stat-card detail-stat-disponible">
+                    <span class="detail-stat-label">Disponible</span>
+                    <span class="detail-stat-value" id="verCantidadDisponible">—</span>
+                </div>
+                <div class="detail-stat-card detail-stat-entregado">
+                    <span class="detail-stat-label">Entregado</span>
+                    <span class="detail-stat-value" id="verCantidadEntregada">—</span>
+                </div>
+                <div class="detail-stat-card detail-stat-devuelto">
+                    <span class="detail-stat-label">Devuelto</span>
+                    <span class="detail-stat-value" id="verCantidadDevuelta">—</span>
                 </div>
             </div>
         </div>
     </div>
+
+    @slot('footer')
+        <button type="button" onclick="closeModal('modalVerLibro')" class="btn-app btn-app-secondary">Cerrar</button>
+    @endslot
 @endcomponent
 
 {{-- Modal Editar Libro --}}
-@component('components.modal', ['id' => 'modalEditarLibro', 'title' => 'Editar Material', 'size' => 'xl'])
+@component('components.modal', ['id' => 'modalEditarLibro', 'title' => 'Editar Material', 'icon' => 'pencil', 'size' => 'xl'])
     <form id="formEditarLibro" method="POST">
         @csrf
         @method('PUT')
@@ -287,28 +328,31 @@
                 </h3>
 
                 <div class="form-group-app">
-                    <label class="form-label-app">Código del Libro *</label>
-                    <input type="text" name="codigo_libro" id="editCodigoLibro" class="form-control-app" required>
+                    <label class="form-label-app">Código del Libro</label>
+                    <input type="text" name="codigo_libro" id="editCodigoLibro" class="form-control-app" readonly>
                 </div>
 
                 <div class="form-group-app">
                     <label class="form-label-app">Nombre / Título *</label>
-                    <input type="text" name="nombre" id="editNombreLibro" class="form-control-app" required>
+                    <input type="text" name="nombre" id="editNombreLibro" class="form-control-app" required oninput="this.value = this.value.toUpperCase()">
                 </div>
 
                 <div class="row g-3">
                     <div class="col-6 form-group-app">
                         <label class="form-label-app">Tipo de Material *</label>
                         <select name="tipo_material" id="editTipoMaterial" class="form-select-app" required>
-                            <option value="libro">Libro</option>
-                            <option value="cuaderno_trabajo">Cuaderno de Trabajo</option>
-                            <option value="guia_docente">Guía Docente</option>
-                            <option value="material_complementario">Material Complementario</option>
+                            @foreach($tiposMaterial ?? [] as $tipo)
+                                <option value="{{ $tipo }}">{{ ucfirst(str_replace('_', ' ', $tipo)) }}</option>
+                            @endforeach
                         </select>
                     </div>
                     <div class="col-6 form-group-app">
                         <label class="form-label-app">Área *</label>
-                        <input type="text" name="area" id="editAreaLibro" class="form-control-app" required>
+                        <select name="area" id="editAreaLibro" class="form-select-app" required>
+                            @foreach($areas ?? [] as $area)
+                                <option value="{{ $area }}">{{ $area }}</option>
+                            @endforeach
+                        </select>
                     </div>
                 </div>
 
@@ -316,17 +360,17 @@
                     <div class="col-6 form-group-app">
                         <label class="form-label-app">Nivel *</label>
                         <select name="nivel" id="editNivelLibro" class="form-select-app" required>
-                            <option value="inicial">Inicial</option>
-                            <option value="primaria">Primaria</option>
-                            <option value="secundaria">Secundaria</option>
+                            @foreach($niveles ?? [] as $nivel)
+                                <option value="{{ $nivel }}">{{ ucfirst($nivel) }}</option>
+                            @endforeach
                         </select>
                     </div>
                     <div class="col-6 form-group-app">
                         <label class="form-label-app">Grado *</label>
                         <select name="grado" id="editGradoLibro" class="form-select-app" required>
-                            @for($i=1; $i<=6; $i++)
-                                <option value="{{ $i }}">{{ $i }}°</option>
-                            @endfor
+                            @foreach($grados ?? [] as $grado)
+                                <option value="{{ $grado }}">{{ $grado }}°</option>
+                            @endforeach
                         </select>
                     </div>
                 </div>
@@ -340,7 +384,12 @@
                 <div class="row g-3">
                     <div class="col-6 form-group-app">
                         <label class="form-label-app">Editorial</label>
-                        <input type="text" name="editorial" id="editEditorial" class="form-control-app">
+                        <select name="editorial" id="editEditorial" class="form-select-app">
+                            <option value="">Ninguna</option>
+                            @foreach($editoriales ?? [] as $editorial)
+                                <option value="{{ $editorial }}">{{ $editorial }}</option>
+                            @endforeach
+                        </select>
                     </div>
                     <div class="col-6 form-group-app">
                         <label class="form-label-app">Año Edición</label>
@@ -392,8 +441,8 @@
 
 {{-- =============== MODAL NUEVO LIBRO =============== --}}
 <x-modal id="modalNuevoLibro" title="Registrar Nuevo Material" size="xl">
-    <form id="formNuevoLibro" data-action="{{ route('libros.api.store') }}">
-        @include('libros.form')
+    <form id="formNuevoLibro" class="js-form-crear-libro" data-action="{{ route('libros.api.store') }}">
+        @include('libros.form', ['modo' => 'crear'])
     </form>
 
     <x-slot:footer>
@@ -414,11 +463,23 @@
         document.getElementById('verTipoMaterial').textContent = (libro.tipo_material ?? '').replace(/_/g, ' ');
         document.getElementById('verArea').textContent = libro.area ?? '—';
         document.getElementById('verNivelLibro').textContent = libro.nivel ?? '—';
-        document.getElementById('verGradoLibro').textContent = (libro.grado ?? '') + '°';
         document.getElementById('verEditorial').textContent = libro.editorial ?? '—';
         document.getElementById('verAnioEdicion').textContent = libro.anio_edicion ?? '—';
         document.getElementById('verObservacionesLibro').textContent = libro.observaciones ?? '—';
-        document.getElementById('verEstadoLibro').textContent = (libro.estado ?? '').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        document.getElementById('verGradoLibro').textContent = libro.grado ? (libro.grado + '°') : '—';
+
+        const estadoLibroBadge = document.getElementById('verEstadoLibroBadge');
+        const estadoLibroText = (libro.estado ?? '').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || '—';
+        let estadoLibroClass = 'descontinuado';
+        if (libro.estado === 'activo') {
+            estadoLibroClass = 'activo';
+        } else if (libro.estado === 'agotado') {
+            estadoLibroClass = 'agotado';
+        } else if (libro.estado === 'en_revision') {
+            estadoLibroClass = 'en_revision';
+        }
+        estadoLibroBadge.innerHTML = '<span class="book-status ' + estadoLibroClass + '">' + estadoLibroText + '</span>';
+
         document.getElementById('verCantidadTotal').textContent = libro.cantidad_total ?? 0;
         document.getElementById('verCantidadDisponible').textContent = libro.cantidad_disponible ?? 0;
         document.getElementById('verCantidadEntregada').textContent = libro.cantidad_entregada ?? 0;
@@ -426,17 +487,44 @@
         openModal('modalVerLibro');
     }
 
+    function setSelectValueWithFallback(selectId, value, text) {
+        const select = document.getElementById(selectId);
+        if (! select) {
+            return;
+        }
+
+        const strValue = String(value ?? '');
+
+        if (strValue === '') {
+            select.value = '';
+            return;
+        }
+
+        const exists = Array.from(select.options).some(option => option.value === strValue);
+
+        if (! exists) {
+            const option = document.createElement('option');
+            option.value = strValue;
+            option.textContent = text || strValue;
+            select.appendChild(option);
+        }
+
+        select.value = strValue;
+    }
+
     function editarLibro(libro) {
         document.getElementById('formEditarLibro').action = `/libros/${libro.id}`;
         document.getElementById('editCodigoLibro').value = libro.codigo_libro ?? '';
         document.getElementById('editNombreLibro').value = libro.nombre ?? '';
-        document.getElementById('editTipoMaterial').value = libro.tipo_material ?? 'libro';
-        document.getElementById('editAreaLibro').value = libro.area ?? '';
-        document.getElementById('editNivelLibro').value = libro.nivel ?? 'primaria';
-        document.getElementById('editGradoLibro').value = libro.grado ?? 1;
-        document.getElementById('editEditorial').value = libro.editorial ?? '';
+
+        setSelectValueWithFallback('editTipoMaterial', libro.tipo_material, (libro.tipo_material ?? '').replace(/_/g, ' '));
+        setSelectValueWithFallback('editAreaLibro', libro.area, libro.area);
+        setSelectValueWithFallback('editNivelLibro', libro.nivel, libro.nivel);
+        setSelectValueWithFallback('editGradoLibro', libro.grado, libro.grado ? (libro.grado + '°') : '');
+        setSelectValueWithFallback('editEditorial', libro.editorial, libro.editorial);
+        setSelectValueWithFallback('editIdAnioEscolar', libro.id_anio_escolar, null);
+
         document.getElementById('editAnioEdicion').value = libro.anio_edicion ?? '';
-        document.getElementById('editIdAnioEscolar').value = libro.id_anio_escolar ?? '';
         document.getElementById('editCantidadTotal').value = libro.cantidad_total ?? 0;
         document.getElementById('editEstadoLibro').value = libro.estado ?? 'activo';
         document.getElementById('editObservacionesLibro').value = libro.observaciones ?? '';

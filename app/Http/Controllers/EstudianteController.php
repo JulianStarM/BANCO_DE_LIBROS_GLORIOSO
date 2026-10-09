@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Configuracion;
 use App\Models\Estudiante;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
@@ -36,12 +37,44 @@ class EstudianteController extends Controller
             ->paginate(15)
             ->withQueryString();
 
+        $configEst = [
+            'niveles' => Configuracion::nombresActivosEstudiantes('niveles', ['inicial', 'primaria', 'secundaria']),
+            'grados' => Configuracion::nombresActivosEstudiantes('grados', ['1', '2', '3', '4', '5', '6']),
+            'secciones' => Configuracion::nombresActivosEstudiantes('secciones', ['A', 'B', 'C', 'D']),
+            'turnos' => Configuracion::nombresActivosEstudiantes('turnos', ['mañana', 'tarde']),
+            'campos_obligatorios' => Configuracion::obtener('estudiantes', 'campos_obligatorios', [
+                'dni' => true,
+                'nombres' => true,
+                'apellidos' => true,
+                'sexo' => true,
+                'nivel' => true,
+                'grado' => true,
+                'seccion' => true,
+            ]),
+            'campos_visibles' => Configuracion::obtener('estudiantes', 'campos_visibles', [
+                'codigo_estudiante' => true,
+                'dni' => true,
+                'nombres' => true,
+                'apellidos' => true,
+                'sexo' => true,
+                'nivel' => true,
+                'grado' => true,
+                'seccion' => true,
+                'turno' => true,
+                'direccion' => true,
+                'telefono' => true,
+                'id_anio_escolar' => true,
+                'estado' => true,
+            ]),
+        ];
+
         return view('estudiantes.index', compact(
             'estudiantes',
             'q',
             'grado',
             'seccion',
-            'nivel'
+            'nivel',
+            'configEst'
         ));
     }
 
@@ -56,8 +89,13 @@ class EstudianteController extends Controller
     {
         try {
             $data = $this->validateData($request);
-            $data['id_institucion'] = 1; // Valor por defecto
+            $data['id_institucion'] = 1;
             $data['estado'] = $request->has('estado') ? 'activo' : 'retirado';
+
+            // Defaults para campos no enviados cuando están ocultos
+            $data['id_anio_escolar'] ??= 1;
+            $data['turno'] ??= null;
+            $data['codigo_estudiante'] ??= null;
 
             Estudiante::create($data);
 
@@ -210,12 +248,13 @@ class EstudianteController extends Controller
             $data['id_institucion'] = 1;
             $data['estado'] = $request->has('estado') ? 'activo' : 'retirado';
 
-            // Default turno si viene vacío
-            if (empty($data['turno'])) {
-                $data['turno'] = 'mañana';
-            }
+            // Defaults para campos no enviados cuando están ocultos
+            $data['id_anio_escolar'] ??= 1;
+            $data['turno'] ??= null;
+            $data['codigo_estudiante'] ??= null;
 
             $estudiante = Estudiante::create($data);
+            session()->flash('success', config('messages.estudiantes.store.success'));
 
             return response()->json([
                 'success' => true,
@@ -277,41 +316,67 @@ class EstudianteController extends Controller
 
     protected function validateData(Request $request, ?int $id = null): array
     {
+        $obligatorios = Configuracion::obtener('estudiantes', 'campos_obligatorios', [
+            'dni' => true,
+            'nombres' => true,
+            'apellidos' => true,
+            'sexo' => true,
+            'nivel' => true,
+            'grado' => true,
+            'seccion' => true,
+            'id_anio_escolar' => false,
+        ]);
+
+        $visibles = Configuracion::obtener('estudiantes', 'campos_visibles', [
+            'dni' => true,
+            'nombres' => true,
+            'apellidos' => true,
+            'sexo' => true,
+            'nivel' => true,
+            'grado' => true,
+            'seccion' => true,
+            'turno' => true,
+            'direccion' => true,
+            'telefono' => true,
+            'codigo_estudiante' => true,
+            'id_anio_escolar' => true,
+        ]);
+
+        // Si un campo no es visible, nunca debe ser requerido (el usuario no puede llenarlo)
+        $req = fn (string $campo) => ($visibles[$campo] ?? true) && ($obligatorios[$campo] ?? false) ? 'required' : 'nullable';
+
         return $request->validate([
             'codigo_estudiante' => [
-                'nullable',
+                $req('codigo_estudiante'),
                 'string',
                 'max:20',
                 Rule::unique('estudiantes', 'codigo_estudiante')->ignore($id),
             ],
 
             'dni' => [
-                'required',
+                $req('dni'),
                 'string',
                 'max:15',
                 Rule::unique('estudiantes', 'dni')->ignore($id),
             ],
 
-            'nombres' => ['required', 'string', 'max:100'],
-            'apellidos' => ['required', 'string', 'max:100'],
+            'nombres' => [$req('nombres'), 'string', 'max:100'],
+            'apellidos' => [$req('apellidos'), 'string', 'max:100'],
 
-            'sexo' => ['required', 'in:M,F'],
+            'sexo' => [$req('sexo'), 'in:M,F'],
 
-            // TU BD: tinyint
-            'grado' => ['required', 'integer'],
+            'grado' => [$req('grado'), 'integer'],
 
-            'seccion' => ['required', 'string', 'max:5'],
+            'seccion' => [$req('seccion'), 'string', 'max:5'],
 
-            // IMPORTANTE: minúsculas según tu BD
-            'nivel' => ['required', 'in:inicial,primaria,secundaria'],
+            'nivel' => [$req('nivel'), 'in:inicial,primaria,secundaria'],
 
-            // IMPORTANTE: enum minúsculas según tu BD
-            'turno' => ['nullable', 'in:mañana,tarde,noche'],
+            'turno' => [$req('turno'), 'in:mañana,tarde,noche'],
 
-            'direccion' => ['nullable', 'string', 'max:255'],
-            'telefono' => ['nullable', 'string', 'max:20'],
+            'direccion' => [$req('direccion'), 'string', 'max:255'],
+            'telefono' => [$req('telefono'), 'string', 'max:20'],
 
-            'id_anio_escolar' => ['required', 'integer'],
+            'id_anio_escolar' => [$req('id_anio_escolar'), 'integer'],
         ]);
     }
 

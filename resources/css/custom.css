@@ -1,75 +1,89 @@
 :root {
-    /* Colores principales (manteniendo la identidad actual) */
-    --color-primary: #2563eb;
-    --color-primary-dark: #1d4ed8;
-    --color-primary-light: #dbeafe;
+    /* ── Paleta institucional / hospitalaria ── */
+    --color-hospital-navy: #06284F;
+    --color-hospital-navy-dark: #03152C;
+    --color-hospital-primary: #123F70;
+    --color-hospital-primary-dark: #0A2540;
+    --color-hospital-primary-light: #E8EEF5;
 
-    /* Escala slate */
-    --color-slate-50: #f8fafc;
-    --color-slate-100: #f1f5f9;
-    --color-slate-200: #e2e8f0;
-    --color-slate-300: #cbd5e1;
-    --color-slate-400: #94a3b8;
-    --color-slate-500: #64748b;
+    /* Mapeo de la antigua variable primaria para no romper componentes existentes */
+    --color-primary: var(--color-hospital-primary);
+    --color-primary-dark: var(--color-hospital-primary-dark);
+    --color-primary-light: var(--color-hospital-primary-light);
+
+    /* Escala de grises institucional */
+    --color-slate-50: #F8FAFC;
+    --color-slate-100: #F1F5F9;
+    --color-slate-200: #E2E8F0;
+    --color-slate-300: #CBD5E1;
+    --color-slate-400: #94A3B8;
+    --color-slate-500: #64748B;
     --color-slate-600: #475569;
     --color-slate-700: #334155;
-    --color-slate-800: #1e293b;
-    --color-slate-900: #0f172a;
+    --color-slate-800: #1E293B;
+    --color-slate-900: #0F172A;
     --color-slate-950: #020617;
 
     /* Colores de estado */
-    --color-success: #10b981;
-    --color-success-light: #ecfdf5;
-    --color-warning: #f59e0b;
-    --color-warning-light: #fffbeb;
-    --color-danger: #f43f5e;
-    --color-danger-light: #fff1f2;
-    --color-info: #0ea5e9;
-    --color-info-light: #f0f9ff;
-    --color-violet: #8b5cf6;
-    --color-violet-light: #f5f3ff;
+    --color-success: #16A34A;
+    --color-success-light: #F0FDF4;
+    --color-warning: #F59E0B;
+    --color-warning-light: #FFFBEB;
+    --color-danger: #E65345;
+    --color-danger-light: #FEF2F2;
+    --color-info: #0EA5E9;
+    --color-info-light: #F0F9FF;
+    --color-violet: #8B5CF6;
+    --color-violet-light: #F5F3FF;
 
     /* Fondos */
-    --body-bg: #f5f7fb;
-    --content-bg: var(--color-slate-50);
-    --card-bg: #ffffff;
+    --body-bg: #F0F4F8;
+    --content-bg: #F8FAFC;
+    --card-bg: #FFFFFF;
 
     /* Bordes */
-    --border-color: var(--color-slate-200);
-    --border-radius-sm: 0.5rem;
-    --border-radius: 0.75rem;
-    --border-radius-lg: 1rem;
-    --border-radius-xl: 1.25rem;
-    --border-radius-2xl: 1.5rem;
+    --border-color: #C8D2DF;
+    --border-radius-sm: 0.375rem;  /* 6px  */
+    --border-radius: 0.5rem;       /* 8px  */
+    --border-radius-lg: 0.625rem;  /* 10px */
+    --border-radius-xl: 0.75rem;   /* 12px */
+    --border-radius-2xl: 0.75rem;  /* 12px */
 
-    /* Tipografía */
-    --font-family-base: 'Instrument Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-    --font-size-base: 1rem;
-    --font-size-sm: 0.875rem;
-    --font-size-xs: 0.75rem;
+    /* Tipografía: tamaños reducidos a valores normales */
+    --font-family-base: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-size-base: 0.875rem;    /* 14px */
+    --font-size-sm: 0.8125rem;     /* 13px */
+    --font-size-xs: 0.75rem;       /* 12px */
 
-    /* Sombras */
-    --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
-    --shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.08), 0 1px 2px -1px rgba(15, 23, 42, 0.08);
-    --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.08);
-    --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.08);
-    --shadow-xl: 0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.08);
+    /* Sombras sutiles */
+    --shadow-sm: 0 1px 2px 0 rgba(6, 40, 79, 0.04);
+    --shadow: 0 1px 3px 0 rgba(6, 40, 79, 0.06), 0 1px 2px -1px rgba(6, 40, 79, 0.06);
+    --shadow-md: 0 4px 6px -1px rgba(6, 40, 79, 0.05), 0 2px 4px -2px rgba(6, 40, 79, 0.05);
+    --shadow-lg: 0 10px 15px -3px rgba(6, 40, 79, 0.05), 0 4px 6px -4px rgba(6, 40, 79, 0.05);
+    --shadow-xl: 0 20px 25px -5px rgba(6, 40, 79, 0.05), 0 8px 10px -6px rgba(6, 40, 79, 0.05);
 
     /* Transiciones */
     --transition-fast: 150ms ease;
     --transition-base: 200ms ease;
     --transition-slow: 300ms ease;
+
+    /* Layout */
+    --header-height: 4rem;
+    --sidebar-width: 15rem;
+    --sidebar-collapsed-width: 3.75rem;
 }
 
 /* Base */
 html {
-    font-size: 108%;
+    font-size: 100%;
 }
 
 body {
     font-family: var(--font-family-base);
+    font-size: var(--font-size-base);
+    line-height: 1.5;
     background-color: var(--body-bg);
-    color: var(--color-slate-900);
+    color: var(--color-slate-800);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
@@ -94,20 +108,20 @@ body {
 .content-scroll {
     flex: 1;
     overflow-y: auto;
-    padding: 1.25rem;
+    padding: 1rem;
 }
 
 @media (min-width: 768px) {
     .content-scroll {
-        padding: 1.5rem;
+        padding: 1.25rem;
     }
 }
 
-/* Cards con estilo actual */
+/* Cards */
 .card-app {
     background-color: var(--card-bg);
     border: 1px solid var(--border-color);
-    border-radius: var(--border-radius-2xl);
+    border-radius: var(--border-radius);
     box-shadow: var(--shadow-sm);
 }
 
@@ -116,18 +130,18 @@ body {
 }
 
 .card-app-hover:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-xl);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
 }
 
 /* Badges y pills */
 .badge-pill {
     display: inline-flex;
     align-items: center;
-    padding: 0.35em 0.85em;
+    padding: 0.25em 0.75em;
     border-radius: 9999px;
-    font-size: var(--font-size-sm);
-    font-weight: 700;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
 }
 
 /* Iconos */
@@ -138,72 +152,28 @@ body {
 }
 
 /* Utilidades de texto */
-.text-slate-400 {
-    color: var(--color-slate-400) !important;
-}
-
-.text-slate-500 {
-    color: var(--color-slate-500) !important;
-}
-
-.text-slate-600 {
-    color: var(--color-slate-600) !important;
-}
-
-.text-slate-300 {
-    color: var(--color-slate-300) !important;
-}
-
-.text-slate-400 {
-    color: var(--color-slate-400) !important;
-}
-
-.text-slate-500 {
-    color: var(--color-slate-500) !important;
-}
-
-.text-slate-600 {
-    color: var(--color-slate-600) !important;
-}
-
-.text-slate-700 {
-    color: var(--color-slate-700) !important;
-}
-
-.text-slate-800 {
-    color: var(--color-slate-800) !important;
-}
-
-.text-slate-900 {
-    color: var(--color-slate-900) !important;
-}
+.text-slate-400 { color: var(--color-slate-400) !important; }
+.text-slate-500 { color: var(--color-slate-500) !important; }
+.text-slate-600 { color: var(--color-slate-600) !important; }
+.text-slate-700 { color: var(--color-slate-700) !important; }
+.text-slate-800 { color: var(--color-slate-800) !important; }
+.text-slate-900 { color: var(--color-slate-900) !important; }
 
 /* Utilidades de fondo */
-.bg-slate-50 {
-    background-color: var(--color-slate-50) !important;
-}
+.bg-slate-50 { background-color: var(--color-slate-50) !important; }
+.bg-slate-100 { background-color: var(--color-slate-100) !important; }
+.bg-slate-800 { background-color: var(--color-slate-800) !important; }
+.bg-slate-900 { background-color: var(--color-slate-900) !important; }
 
-.bg-slate-100 {
-    background-color: var(--color-slate-100) !important;
-}
-
-.bg-slate-800 {
-    background-color: var(--color-slate-800) !important;
-}
-
-.bg-slate-900 {
-    background-color: var(--color-slate-900) !important;
-}
-
-/* Gradiente hero */
+/* Gradiente suave para hero */
 .hero-gradient {
-    background: linear-gradient(to right, rgba(219, 234, 254, 0.6), #ffffff, rgba(236, 253, 245, 0.4));
+    background: linear-gradient(to right, var(--color-primary-light), #ffffff, var(--color-success-light));
 }
 
 /* Progress personalizado */
 .progress-app {
-    height: 1rem;
-    background-color: var(--color-slate-100);
+    height: 0.75rem;
+    background-color: var(--color-slate-200);
     border-radius: 9999px;
     overflow: hidden;
 }
@@ -211,7 +181,7 @@ body {
 .progress-bar-app {
     height: 100%;
     border-radius: 9999px;
-    background: linear-gradient(to right, var(--color-success), #34d399);
+    background: linear-gradient(to right, var(--color-success), #22c55e);
     transition: width 700ms ease-out;
 }
 
@@ -223,11 +193,11 @@ body {
     top: 50%;
     transform: translateY(-50%);
     margin-left: 0.5rem;
-    background-color: var(--color-slate-800);
+    background-color: var(--color-hospital-navy);
     color: #ffffff;
     padding: 0.25rem 0.5rem;
-    border-radius: 0.375rem;
-    font-size: 0.85rem;
+    border-radius: var(--border-radius-sm);
+    font-size: var(--font-size-xs);
     white-space: nowrap;
     z-index: 50;
     pointer-events: none;
@@ -262,3 +232,267 @@ body {
 .animate-fade-in {
     animation: fadeIn var(--transition-base) ease-out;
 }
+
+/* ── Ajustes de compatibilidad con utilidades de Bootstrap ── */
+.text-primary {
+    color: var(--color-hospital-primary) !important;
+}
+
+.bg-primary-subtle {
+    background-color: var(--color-hospital-primary-light) !important;
+}
+
+.text-primary-emphasis {
+    color: var(--color-hospital-navy) !important;
+}
+
+.bg-success-subtle {
+    background-color: var(--color-success-light) !important;
+}
+
+.text-success {
+    color: #166534 !important;
+}
+
+.bg-warning-subtle {
+    background-color: var(--color-warning-light) !important;
+}
+
+.text-warning {
+    color: #92400e !important;
+}
+
+.bg-danger-subtle {
+    background-color: var(--color-danger-light) !important;
+}
+
+.text-danger {
+    color: #991b1b !important;
+}
+
+.bg-info-subtle {
+    background-color: var(--color-info-light) !important;
+}
+
+.text-info {
+    color: #075985 !important;
+}
+
+.bg-secondary-subtle {
+    background-color: var(--color-slate-100) !important;
+}
+
+.text-secondary {
+    color: var(--color-slate-600) !important;
+}
+
+.text-orange {
+    color: #c2410c !important;
+}
+
+.bg-orange-subtle {
+    background-color: #fff7ed !important;
+}
+
+.btn-outline-primary {
+    color: var(--color-hospital-primary);
+    border-color: var(--color-hospital-primary);
+    background-color: #ffffff;
+}
+
+.btn-outline-primary:hover {
+    color: #ffffff;
+    background-color: var(--color-hospital-primary);
+    border-color: var(--color-hospital-primary);
+}
+
+.btn-primary {
+    background-color: var(--color-hospital-primary);
+    border-color: var(--color-hospital-primary);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background-color: var(--color-hospital-navy);
+    border-color: var(--color-hospital-navy);
+    color: #ffffff;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.35em 0.7em;
+    border-radius: 9999px;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    border: 1px solid transparent;
+}
+
+/* Tamaños de encabezado reducidos para una apariencia más institucional */
+h1, .h1 { font-size: 1.5rem; }
+h2, .h2 { font-size: 1.25rem; }
+h3, .h3 { font-size: 1.125rem; }
+h4, .h4 { font-size: 1rem; }
+h5, .h5 { font-size: var(--font-size-base); }
+h6, .h6 { font-size: var(--font-size-sm); }
+
+p {
+    margin-bottom: 0.75rem;
+}
+
+small, .small {
+    font-size: var(--font-size-xs);
+}
+
+.text-xs {
+    font-size: var(--font-size-xs) !important;
+}
+
+.text-sm {
+    font-size: var(--font-size-sm) !important;
+}
+
+/* ── Paneles de detalle (modal ver) ── */
+.detail-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.detail-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+}
+
+.detail-section-title {
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-slate-500);
+    margin: 0;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.detail-grid-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 575.98px) {
+    .detail-grid,
+    .detail-grid-3 {
+        grid-template-columns: 1fr;
+    }
+}
+
+.detail-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    padding: 0.625rem 0.875rem;
+    background-color: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+}
+
+.detail-field.full-width {
+    grid-column: 1 / -1;
+}
+
+.detail-label {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-hospital-navy);
+}
+
+.detail-value {
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-slate-600);
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.detail-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+@media (max-width: 575.98px) {
+    .detail-stat-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.detail-stat-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 0.75rem 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    background-color: #ffffff;
+}
+
+.detail-stat-label {
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-slate-500);
+}
+
+.detail-stat-value {
+    font-size: 1.125rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.detail-stat-total {
+    background-color: var(--color-info-light);
+    border-color: #bae6fd;
+}
+
+.detail-stat-total .detail-stat-value {
+    color: #0369a1;
+}
+
+.detail-stat-disponible {
+    background-color: var(--color-success-light);
+    border-color: #bbf7d0;
+}
+
+.detail-stat-disponible .detail-stat-value {
+    color: #047857;
+}
+
+.detail-stat-entregado {
+    background-color: var(--color-hospital-primary-light);
+    border-color: #dbe4ee;
+}
+
+.detail-stat-entregado .detail-stat-value {
+    color: var(--color-hospital-primary);
+}
+
+.detail-stat-devuelto {
+    background-color: var(--color-slate-100);
+    border-color: var(--border-color);
+}
+
+.detail-stat-devuelto .detail-stat-value {
+    color: var(--color-slate-700);
+}
+

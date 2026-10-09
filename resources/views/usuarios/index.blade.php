@@ -36,10 +36,8 @@
     </div>
 </div>
 
-<div class="card-app">
-    <div class="card-body-base p-0">
-        <div class="table-responsive-app">
-            <table class="table-app">
+<div class="table-responsive-app">
+    <table class="table-app">
                 <thead>
                     <tr>
                         <th>#</th>
@@ -77,7 +75,11 @@
                                     <a href="{{ route('usuarios.edit', $u) }}" class="btn-action btn-action-primary" title="Editar">
                                         <i data-lucide="pencil" class="icon"></i>
                                     </a>
-                                    <form action="{{ route('usuarios.destroy', $u) }}" method="POST" class="d-inline form-delete">
+                                    <form action="{{ route('usuarios.destroy', $u) }}" method="POST" class="d-inline form-delete"
+                                          data-confirm="true"
+                                          data-confirm-title="¿Eliminar usuario?"
+                                          data-confirm-message="El usuario {{ $u->nombre }} será eliminado permanentemente."
+                                          data-confirm-text="Eliminar">
                                         @csrf @method('DELETE')
                                         <button class="btn-action btn-action-danger" title="Eliminar">
                                             <i data-lucide="trash-2" class="icon"></i>
@@ -97,12 +99,10 @@
                     @endforelse
                 </tbody>
             </table>
-        </div>
-    </div>
 </div>
 
-<div class="mt-3 d-flex justify-content-center">
-    {{ $usuarios->links() }}
+<div class="mt-3">
+    {{ $usuarios->links('pagination::bootstrap-5') }}
 </div>
 @endsection
 

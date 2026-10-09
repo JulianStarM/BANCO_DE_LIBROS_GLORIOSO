@@ -1,32 +1,158 @@
-*{box-sizing:border-box}
-html,body{height:100%;margin:0;font-family:'Segoe UI',system-ui,sans-serif;background:#061a33;color:#fff;overflow:hidden}
+* { box-sizing: border-box; }
 
-#particles{position:fixed;inset:0;width:100%;height:100%;z-index:0;display:block;background:radial-gradient(circle at 30% 20%,#0d3b66 0%,#061a33 60%,#020a18 100%)}
-
-.login-container{position:relative;z-index:1;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem}
-
-.login-card{
-    width:100%;max-width:420px;
-    background:rgba(255,255,255,.96);
-    color:#1b1b1b;
-    border-radius:.9rem;
-    padding:2.25rem 2rem;
-    box-shadow:0 25px 60px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.05);
-    backdrop-filter:blur(6px);
-    animation:fadeUp .5s ease;
+html, body {
+    height: 100%;
+    margin: 0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 14px;
+    background: #06284F;
+    color: #fff;
+    overflow: hidden;
 }
 
-@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+#particles {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    display: block;
+    background: radial-gradient(circle at 30% 20%, #123F70 0%, #06284F 60%, #041a34 100%);
+}
 
-.login-brand{text-align:center;margin-bottom:1.5rem}
-.login-brand i{font-size:2.6rem;color:#0d3b66}
-.login-brand h1{font-size:1.35rem;margin:.4rem 0 .15rem;font-weight:700;color:#0d3b66}
-.login-brand p{margin:0;font-size:.83rem;color:#6c757d}
+.login-container {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
 
-.form-label{font-size:.82rem;font-weight:600;color:#374151}
-.input-group-text{background:#f1f3f7;border-right:0}
-.form-control{border-left:0}
-.form-control:focus{box-shadow:none;border-color:#0d3b66}
+.login-card {
+    width: 100%;
+    max-width: 400px;
+    background: #ffffff;
+    color: #1b1b1b;
+    border-radius: 10px;
+    padding: 2rem 1.75rem;
+    box-shadow: 0 20px 50px rgba(6, 40, 79, 0.35);
+    animation: fadeUp .4s ease;
+}
 
-.btn-primary{background:#0d3b66;border-color:#0d3b66;padding:.6rem;font-weight:600;letter-spacing:.02em}
-.btn-primary:hover{background:#072a4d;border-color:#072a4d}
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.login-brand {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.login-brand i {
+    font-size: 2.25rem;
+    color: #06284F;
+}
+
+.login-brand h1 {
+    font-size: 1.25rem;
+    margin: .5rem 0 .15rem;
+    font-weight: 700;
+    color: #06284F;
+}
+
+.login-brand p {
+    margin: 0;
+    font-size: .8rem;
+    color: #64748B;
+}
+
+.form-label {
+    font-size: .82rem;
+    font-weight: 600;
+    color: #06284F;
+    margin-bottom: .35rem;
+}
+
+.input-group-text {
+    background: #F8FAFC;
+    border: 1px solid #C8D2DF;
+    border-right: 0;
+    color: #64748B;
+    padding: .5rem .75rem;
+}
+
+.form-control {
+    border: 1px solid #C8D2DF;
+    border-left: 0;
+    padding: .5rem .75rem;
+    font-size: .875rem;
+    color: #0F172A;
+}
+
+.form-control::placeholder {
+    color: #94A3B8;
+}
+
+.form-control:focus {
+    box-shadow: 0 0 0 0.2rem rgba(18, 63, 112, 0.12);
+    border-color: #123F70;
+}
+
+.form-check-input {
+    width: 1rem;
+    height: 1rem;
+    border-color: #C8D2DF;
+}
+
+.form-check-input:checked {
+    background-color: #123F70;
+    border-color: #123F70;
+}
+
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.2rem rgba(18, 63, 112, 0.12);
+    border-color: #123F70;
+}
+
+.form-check-label {
+    font-size: .82rem;
+    color: #334155;
+}
+
+.btn-primary {
+    background: #123F70;
+    border-color: #123F70;
+    padding: .6rem;
+    font-weight: 600;
+    font-size: .875rem;
+    letter-spacing: .01em;
+    transition: background-color .15s ease, border-color .15s ease, transform .15s ease;
+}
+
+.btn-primary:hover {
+    background: #06284F;
+    border-color: #06284F;
+}
+
+.btn-primary:active {
+    background: #051d3a;
+    border-color: #051d3a;
+    transform: translateY(1px);
+}
+
+.alert-danger {
+    background-color: #FEF2F2;
+    color: #991B1B;
+    border-color: #FECACA;
+    border-radius: 6px;
+    font-size: .82rem;
+}
+
+@media (max-width: 480px) {
+    .login-card {
+        padding: 1.5rem 1.25rem;
+    }
+}

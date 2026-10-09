@@ -12,54 +12,116 @@ document.addEventListener('DOMContentLoaded', function() {
     const mIdEntrega = document.getElementById('modal_id_entrega');
     const mInfo = document.getElementById('modal_dev_info');
     const mBuscarWrapper = document.getElementById('dev-buscar-wrapper');
+    const mSecBuscarEnt = document.getElementById('modal_sec_buscar_ent');
     const mSecLibros = document.getElementById('modal_dev_sec_libros');
     const mSecFirmante = document.getElementById('modal_dev_sec_firmante');
     const mListaLibros = document.getElementById('modal_dev_lista_libros');
     const mBtnGuardar = document.getElementById('modal_btn_guardar_dev');
     let timeoutBusq = null;
 
+    function renderEntregas(data) {
+        if (!mResultados) return;
+        mResultados.innerHTML = '';
+        if (data.length === 0) {
+            mResultados.innerHTML = '<div class="seleccion-empty">No se encontraron entregas pendientes.</div>';
+            return;
+        }
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'seleccion-tabla-wrapper';
+        wrapper.style.maxHeight = '16rem';
+        wrapper.style.overflowY = 'auto';
+
+        const table = document.createElement('table');
+        table.className = 'table table-app table-sm mb-0 seleccion-tabla';
+        table.innerHTML = `
+            <thead>
+                <tr>
+                    <th class="text-center" style="width: 2.5rem;">#</th>
+                    <th style="width: 9rem;">Código entrega</th>
+                    <th>Estudiante</th>
+                    <th style="width: 7rem;">DNI</th>
+                    <th class="text-center" style="width: 3.5rem;"></th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        `;
+
+        const tbody = table.querySelector('tbody');
+        data.forEach((ent, i) => {
+            const tr = document.createElement('tr');
+            tr.className = 'seleccion-fila' + (mIdEntrega.value == ent.id ? ' active' : '');
+            tr.setAttribute('data-id', ent.id);
+            tr.innerHTML = `
+                <td class="text-center">${i + 1}</td>
+                <td class="fw-medium text-slate-800 font-mono">${ent.codigo_general}</td>
+                <td class="fw-medium text-slate-800">${ent.estudiante.apellidos}, ${ent.estudiante.nombres}</td>
+                <td>${ent.estudiante.dni}</td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 seleccionar-btn" title="Seleccionar">
+                        <i data-lucide="check" class="icon" style="width: 0.875rem; height: 0.875rem;"></i>
+                    </button>
+                </td>
+            `;
+            tr.addEventListener('click', (e) => {
+                if (! e.target.closest('.seleccionar-btn')) {
+                    seleccionarEntregaModal(ent, tr);
+                }
+            });
+            tr.querySelector('.seleccionar-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                seleccionarEntregaModal(ent, tr);
+            });
+            tbody.appendChild(tr);
+        });
+
+        wrapper.appendChild(table);
+        mResultados.appendChild(wrapper);
+        window.initLucide?.();
+    }
+
+    function buscarEntregas(q = '') {
+        fetch(`${pendientesUrl}?q=${encodeURIComponent(q)}`)
+            .then(r => r.json())
+            .then(data => renderEntregas(data))
+            .catch(() => {
+                if (!mResultados) return;
+                mResultados.innerHTML = '<div class="seleccion-empty text-danger">Error al cargar entregas.</div>';
+            });
+    }
+
+    function cargarListaInicial() {
+        if (!mResultados) return;
+        mResultados.innerHTML = '<div class="seleccion-empty"><i data-lucide="loader-2" class="icon spin"></i> Cargando entregas pendientes...</div>';
+        window.initLucide?.();
+        buscarEntregas('');
+    }
+
     if (mBuscar) {
         mBuscar.addEventListener('input', function() {
             const q = this.value.trim();
             clearTimeout(timeoutBusq);
-            if (q.length < 2) {
-                if(mResultados) mResultados.classList.add('d-none');
-                return;
-            }
-            timeoutBusq = setTimeout(() => {
-                fetch(`${pendientesUrl}?q=${encodeURIComponent(q)}`)
-                    .then(r => r.json())
-                    .then(data => {
-                        if (!mResultados) return;
-                        mResultados.innerHTML = '';
-                        if (data.length === 0) {
-                            mResultados.innerHTML = '<div class="result-empty">No se encontraron entregas pendientes.</div>';
-                        } else {
-                            data.forEach(ent => {
-                                const div = document.createElement('div');
-                                div.className = 'result-item';
-                                div.innerHTML = `<div class="result-title">${ent.codigo_general}</div><div class="result-meta">${ent.estudiante.apellidos}, ${ent.estudiante.nombres} | DNI: ${ent.estudiante.dni}</div>`;
-                                div.addEventListener('click', () => seleccionarEntregaModal(ent));
-                                mResultados.appendChild(div);
-                            });
-                        }
-                        mResultados.classList.remove('d-none');
-                    });
-            }, 300);
+            timeoutBusq = setTimeout(() => buscarEntregas(q), 300);
         });
+
+        cargarListaInicial();
     }
 
-    document.addEventListener('click', (e) => {
-        if (mBuscar && !mBuscar.contains(e.target) && mResultados && !mResultados.contains(e.target)) {
-            mResultados.classList.add('d-none');
-        }
-    });
 
-    function seleccionarEntregaModal(ent) {
-        if(mResultados) mResultados.classList.add('d-none');
-        if(mBuscarWrapper) mBuscarWrapper.classList.add('d-none');
 
+    function seleccionarEntregaModal(ent, itemElement = null) {
         if(mIdEntrega) mIdEntrega.value = ent.id;
+        if(mSecBuscarEnt) mSecBuscarEnt.classList.add('d-none');
+
+        if(mResultados) {
+            mResultados.querySelectorAll('.seleccion-fila').forEach(el => el.classList.remove('active'));
+            if (itemElement) {
+                itemElement.classList.add('active');
+            } else {
+                const active = mResultados.querySelector(`.seleccion-fila[data-id="${ent.id}"]`);
+                if (active) active.classList.add('active');
+            }
+        }
 
         const lblCod = document.getElementById('modal_dev_lbl_cod');
         const lblEst = document.getElementById('modal_dev_lbl_est');
@@ -109,26 +171,28 @@ document.addEventListener('DOMContentLoaded', function() {
             if(mInfo) mInfo.classList.add('d-none');
             if(mSecLibros) mSecLibros.classList.add('d-none');
             if(mSecFirmante) mSecFirmante.classList.add('d-none');
-            if(mBuscarWrapper) mBuscarWrapper.classList.remove('d-none');
+            if(mSecBuscarEnt) mSecBuscarEnt.classList.remove('d-none');
 
             if(mBuscar) {
                 mBuscar.value = '';
                 mBuscar.focus();
             }
             if(mIdEntrega) mIdEntrega.value = '';
+            if(mResultados) mResultados.querySelectorAll('.seleccion-fila').forEach(el => el.classList.remove('active'));
 
             if(mBtnGuardar) {
                 mBtnGuardar.disabled = true;
             }
+
+            cargarListaInicial();
         });
     }
 
     if (mBtnGuardar) {
         mBtnGuardar.addEventListener('click', () => {
             if (window.submitModalForm) {
-                window.submitModalForm('formNuevaDevolucion', actionUrl, 'modalNuevaDevolucion', (data) => {
-                    localStorage.setItem('app_toast', JSON.stringify({message: data.message, type: 'success'}));
-                    setTimeout(() => location.reload(), 800);
+                window.submitModalForm('formNuevaDevolucion', actionUrl, 'modalNuevaDevolucion', () => {
+                    location.reload();
                 });
             }
         });
