@@ -1,6 +1,21 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Biblioteca\AreaBibliotecaController;
+use App\Http\Controllers\Biblioteca\AutorBibliotecaController;
+use App\Http\Controllers\Biblioteca\CatalogoBibliotecaController;
+use App\Http\Controllers\Biblioteca\DashboardBibliotecaController;
+use App\Http\Controllers\Biblioteca\DevolucionBibliotecaController;
+use App\Http\Controllers\Biblioteca\EditorialBibliotecaController;
+use App\Http\Controllers\Biblioteca\EjemplarBibliotecaController;
+use App\Http\Controllers\Biblioteca\EstanteBibliotecaController;
+use App\Http\Controllers\Biblioteca\MultaBibliotecaController;
+use App\Http\Controllers\Biblioteca\PrestamoBibliotecaController;
+use App\Http\Controllers\Biblioteca\ReporteBibliotecaController;
+use App\Http\Controllers\Biblioteca\SocioBibliotecaController;
+use App\Http\Controllers\Biblioteca\TipoMaterialBibliotecaController;
+use App\Http\Controllers\Biblioteca\UbicacionBibliotecaController;
+use App\Http\Controllers\Biblioteca\VisitaBibliotecaController;
 use App\Http\Controllers\ConfiguracionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DevolucionController;
@@ -98,5 +113,32 @@ Route::middleware('auth')->group(function () {
     Route::put('configuraciones/libros/{categoria}/{id}/actualizar', [ConfiguracionController::class, 'actualizarItemLibro'])->name('configuraciones.libros.actualizar');
     Route::put('configuraciones/libros/{categoria}/{id}/toggle', [ConfiguracionController::class, 'toggleItemLibro'])->name('configuraciones.libros.toggle');
     Route::delete('configuraciones/libros/{categoria}/{id}/eliminar', [ConfiguracionController::class, 'eliminarItemLibro'])->name('configuraciones.libros.eliminar');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Biblioteca General
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('biblioteca')->name('biblioteca.')->group(function () {
+        Route::get('dashboard', [DashboardBibliotecaController::class, 'index'])->name('dashboard.index');
+
+        Route::resource('catalogo', CatalogoBibliotecaController::class)->except(['create', 'edit', 'show']);
+        Route::resource('ejemplares', EjemplarBibliotecaController::class)->except(['create', 'edit', 'show']);
+        Route::resource('socios', SocioBibliotecaController::class)->except(['create', 'edit', 'show']);
+        Route::resource('prestamos', PrestamoBibliotecaController::class)->except(['create', 'edit', 'show', 'update']);
+        Route::get('devoluciones', [DevolucionBibliotecaController::class, 'index'])->name('devoluciones.index');
+        Route::post('devoluciones/{prestamo}', [DevolucionBibliotecaController::class, 'store'])->name('devoluciones.store');
+
+        Route::resource('autores', AutorBibliotecaController::class)->except(['create', 'edit', 'show']);
+        Route::resource('editoriales', EditorialBibliotecaController::class)->except(['create', 'edit', 'show']);
+        Route::resource('areas', AreaBibliotecaController::class)->except(['create', 'edit', 'show']);
+        Route::resource('tipos-material', TipoMaterialBibliotecaController::class)->except(['create', 'edit', 'show']);
+        Route::resource('ubicaciones', UbicacionBibliotecaController::class)->except(['create', 'edit', 'show']);
+        Route::resource('estantes', EstanteBibliotecaController::class)->except(['create', 'edit', 'show']);
+
+        Route::resource('multas', MultaBibliotecaController::class)->except(['create', 'edit', 'show']);
+        Route::resource('visitas', VisitaBibliotecaController::class)->except(['create', 'edit', 'show']);
+        Route::get('reportes', [ReporteBibliotecaController::class, 'index'])->name('reportes.index');
+    });
 
 });

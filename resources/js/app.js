@@ -6,3 +6,4 @@ import './estudiantes';
 import './libros';
 import './entregas';
 import './devoluciones';
+import './biblioteca-general';

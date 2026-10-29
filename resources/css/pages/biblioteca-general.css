@@ -1,0 +1,12 @@
+:root {
+    --bib-primary: #1e4a8a;
+    --bib-primary-light: #e6f0ff;
+}
+
+.bib-section-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-slate-500);
+}
